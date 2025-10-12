@@ -71,3 +71,26 @@ class Port(db.Model, SerializerMixin):
         __table_args__ = (
             UniqueConstraint('origin_port_id', 'destination_port_id', name='uniq_pair'),
         )
+
+    class Rate(db.Model, SerializerMixin):
+        __tablename__ = 'rates'
+        serialize_rules = (
+            '-port_pair.rates',
+            '-container_type.rates',
+            '-quote_rates.rate',
+        )
+
+        id = db.Column(db.Integer, primary_key=True)
+        port_pair_id = db.Column(db.Integer, db.ForeignKey('port_pairs.id'), nullable=False)
+        container_type_id = db.Column(db.Integer, db.ForeignKey('container_types.id'), nullable=False)
+        base_rate = db.Column(db.Float, nullable=False, default=0.0)
+        transit_days = db.Column(db.Integer, nullable=True)
+
+        port_pair = relationship("PortPair", back_populates="rates")
+        container_type = relationship("ContainerType", back_populates="rates")
+
+        quote_rates = relationship(
+            "QuoteRate",
+            back_populates="rate",
+            cascade="all, delete-orphan",
+    )
