@@ -42,3 +42,32 @@ class Port(db.Model, SerializerMixin):
             back_populates="container_type",
             cascade="all, delete-orphan",
         )
+
+    class PortPair(db.Model, SerializerMixin):
+        __tablename__ = 'port_pairs'
+        serialize_rules = ('-rates.port_pair',)
+
+        id = db.Column(db.Integer, primary_key=True)
+        origin_port_id = db.Column(db.Integer, db.ForeignKey('ports.id'), nullable=False)
+        destination_port_id = db.Column(db.Integer, db.ForeignKey('ports.id'), nullable=False)
+
+        origin_port = relationship(
+            "Port",
+            foreign_keys=[origin_port_id],
+            back_populates="origin_pairs",
+        )
+        destination_port = relationship(
+            "Port",
+            foreign_keys=[destination_port_id],
+            back_populates="dest_pairs",
+        )
+
+        rates = relationship(
+            "Rate",
+            back_populates="port_pair",
+            cascade="all, delete-orphan",
+        )
+
+        __table_args__ = (
+            UniqueConstraint('origin_port_id', 'destination_port_id', name='uniq_pair'),
+        )
