@@ -29,3 +29,16 @@ class Port(db.Model, SerializerMixin):
     def validate_code(self, key, val):
         assert val and len(val) == 5 and val.isupper()
         return val
+    
+    class ContainerType(db.Model, SerializerMixin):
+        __tablename__ = 'container_types'
+
+        id = db.Column(db.Integer, primary_key=True)
+        code = db.Column(db.String, unique=True, nullable=False)
+        description = db.Column(db.String, nullable=True)
+
+        rates = relationship(
+            "Rate",
+            back_populates="container_type",
+            cascade="all, delete-orphan",
+        )
