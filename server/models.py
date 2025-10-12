@@ -94,3 +94,25 @@ class Port(db.Model, SerializerMixin):
             back_populates="rate",
             cascade="all, delete-orphan",
     )
+        
+    class User(db.Model, SerializerMixin):
+        __tablename__ = 'users'
+        serialize_rules = ('-password_hash', '-quotes.user',)
+
+        id = db.Column(db.Integer, primary_key=True)
+        email = db.Column(db.String, unique=True, nullable=False)
+        password_hash = db.Column(db.String, nullable=False)
+
+        quotes = relationship(
+            "Quote",
+            back_populates="user",
+            cascade="all, delete-orphan",
+        )
+
+        def set_password(self, password):
+            self.password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
+
+        def check_password(self, password):
+            return bcrypt.check_password_hash(self.password_hash, password)
+        
+
