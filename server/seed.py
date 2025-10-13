@@ -22,3 +22,9 @@ if __name__ == '__main__':
         alice = User(email="alice@example.com"); alice.set_password("password")
         bob = User(email="bob@example.com"); bob.set_password("password")
         db.session.add_all([alice, bob])
+
+        mel = Port(name="Melbourne", code="AUMEL")
+        syd = Port(name="Sydney", code="AUSYD")
+        tyo = Port(name="Tokyo", code="JPTYO")
+        db.session.add_all([mel, syd, tyo])
+        db.session.flush()
