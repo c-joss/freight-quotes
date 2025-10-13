@@ -78,6 +78,31 @@ class Rates(Resource):
         if ct_id:
             q = q.filter_by(container_type_id=ct_id)
         return [r.to_dict(rules=('-quote_rates',)) for r in q.all()], 200
+    
+class Quotes(Resource):
+    def get(self):
+        return [q.to_dict() for q in Quote.query.all()], 200
+
+    def post(self):
+        user = current_user()
+        if not user:
+            return {"error": "login required"}, 401
+
+        data = request.get_json()
+        title = data.get('title')
+        rate_ids = data.get('rate_ids', [])
+        if not title or not rate_ids:
+            return {"error": "title and rate_ids required"}, 400
+
+        q = Quote(title=title, status='draft', user_id=user.id)
+        db.session.add(q)
+        db.session.flush()
+
+        for rid in rate_ids:
+            db.session.add(QuoteRate(quote_id=q.id, rate_id=rid))
+
+        db.session.commit()
+        return q.to_dict(), 201
 
 
 if __name__ == '__main__':
