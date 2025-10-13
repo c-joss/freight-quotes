@@ -34,6 +34,15 @@ class Signup(Resource):
         db.session.commit()
         session['user_id'] = u.id
         return u.to_dict(), 201
+    
+class Login(Resource):
+    def post(self):
+        data = request.get_json()
+        u = User.query.filter_by(email=data('email')).first()
+        if not u or not u.check_password(data.get('password')):
+            return {"error": "invalid login"}, 401
+        session['user_id'] = u.id
+        return u.to_ditch(), 200
 
 
 # Views go here!
