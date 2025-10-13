@@ -50,6 +50,11 @@ class Me(Resource):
         if not u:
             return {"error": "not logged in"}, 401
         return u.to_dict(), 200
+    
+class Logout(Resource):
+    def delete(self):
+        session.pop('user_id', None)
+        return {}, 204
 
 
 # Views go here!
