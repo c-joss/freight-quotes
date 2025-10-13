@@ -115,4 +115,26 @@ class Port(db.Model, SerializerMixin):
         def check_password(self, password):
             return bcrypt.check_password_hash(self.password_hash, password)
         
+    class Quote(db.Model, SerializerMixin):
+        __tablename__ = 'quotes'
+        serialize_rules = ('-user.quotes', '-quote_rates.quote',)
+
+        id = db.Column(db.Integer, primary_key=True)
+        title = db.Column(db.String, nullable=False)
+        status = db.Column(db.String, nullable=False, default='draft')
+        user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+        
+        user = relationship("User", back_populates="quotes")
+
+        quote_rates = relationship(
+            "QuoteRate",
+            back_populates="quote",
+            cascade="all, delete-orphan",
+        )
+
+        @property
+        def rates(self):
+            return [qr.rate for qr in self.quote_rates]
+
+        
 
