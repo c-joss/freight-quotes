@@ -56,12 +56,17 @@ class Logout(Resource):
         session.pop('user_id', None)
         return {}, 204
 
+class Ports(Resource):
+    def get(self):
+        return [p.to_dict() for p in Port.query.all()], 200
+    
+class PortPairs(Resource):
+    def get(self):
+        return [pp.to_dict() for pp in PortPair.query.all()], 200
 
-# Views go here!
-
-@app.route('/')
-def index():
-    return '<h1>Project Server</h1>'
+class ContainerTypes(Resource):
+    def get(self):
+        return [ct.to_dict() for ct in ContainerType.query.all()], 200
 
 
 if __name__ == '__main__':
