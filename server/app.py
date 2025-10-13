@@ -43,6 +43,13 @@ class Login(Resource):
             return {"error": "invalid login"}, 401
         session['user_id'] = u.id
         return u.to_ditch(), 200
+    
+class Me(Resource):
+    def get(self):
+        u = current_user()
+        if not u:
+            return {"error": "not logged in"}, 401
+        return u.to_dict(), 200
 
 
 # Views go here!
