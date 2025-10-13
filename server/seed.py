@@ -33,3 +33,8 @@ if __name__ == '__main__':
         pp2 = PortPair(origin_port_id=syd.id, destination_port_id=tyo.id)
         db.session.add_all([pp1, pp2])
         db.session.flush()
+
+        ct20 = ContainerType(code="20GP", description="20’ General")
+        ct40 = ContainerType(code="40HC", description="40’ High Cube")
+        db.session.add_all([ct20, ct40])
+        db.session.flush()
