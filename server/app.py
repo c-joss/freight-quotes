@@ -67,6 +67,17 @@ class PortPairs(Resource):
 class ContainerTypes(Resource):
     def get(self):
         return [ct.to_dict() for ct in ContainerType.query.all()], 200
+    
+class Rates(Resource):
+    def get(self):
+        q = Rate.query
+        pp_id = request.args.get('port_pair_id')
+        ct_id = request.args.get('container_type_id')
+        if pp_id:
+            q = q.filter_by(port_pair_id=pp_id)
+        if ct_id:
+            q = q.filter_by(container_type_id=ct_id)
+        return [r.to_dict(rules=('-quote_rates',)) for r in q.all()], 200
 
 
 if __name__ == '__main__':
