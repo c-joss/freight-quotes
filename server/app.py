@@ -103,6 +103,37 @@ class Quotes(Resource):
 
         db.session.commit()
         return q.to_dict(), 201
+    
+class QuoteDetail(Resource):
+    def get(self, qid):
+        q = Quote.query.get_or_404(qid)
+        return q.to_dict(), 200
+
+    def patch(self, qid):
+        q = Quote.query.get_or_404(qid)
+        if not require_owner(q.user_id):
+            return {"error": "forbidden"}, 403
+
+        data = request.get_json()
+        if 'title' in data:
+            q.title = data['title'] or q.title
+        if 'status' in data:
+            q.status = data['status']
+        if 'rate_ids' in data:
+            QuoteRate.query.filter_by(quote_id=q.id).delete()
+            for rid in data['rate_ids']:
+                db.session.add(QuoteRate(quote_id=q.id, rate_id=rid))
+
+        db.session.commit()
+        return q.to_dict(), 200
+
+    def delete(self, qid):
+        q = Quote.query.get_or_404(qid)
+        if not require_owner(q.user_id):
+            return {"error": "forbidden"}, 403
+        db.session.delete(q)
+        db.session.commit()
+        return {}, 204
 
 
 if __name__ == '__main__':
