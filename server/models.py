@@ -123,7 +123,7 @@ class Port(db.Model, SerializerMixin):
         title = db.Column(db.String, nullable=False)
         status = db.Column(db.String, nullable=False, default='draft')
         user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-        
+
         user = relationship("User", back_populates="quotes")
 
         quote_rates = relationship(
@@ -135,6 +135,20 @@ class Port(db.Model, SerializerMixin):
         @property
         def rates(self):
             return [qr.rate for qr in self.quote_rates]
+        
+    class QuoteRate(db.Model, SerializerMixin):
+        __tablename__ = 'quote_rates'
+
+        id = db.Column(db.Integer, primary_key=True)
+        quote_id = db.Column(db.Integer, db.ForeignKey('quotes.id'), nullable=False)
+        rate_id = db.Column(db.Integer, db.ForeignKey('rates.id'), nullable=False)
+
+        quote = relationship("Quote", back_populates="quote_rates")
+        rate = relationship("Rate", back_populates="quote_rates")
+
+        __table_args__ = (
+            UniqueConstraint('quote_id', 'rate_id', name='uniq_quote_rate'),
+        )
 
         
 
