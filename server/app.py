@@ -3,12 +3,13 @@
 # Standard library imports
 
 # Remote library imports
-from flask import request
+from flask import request, session
 from flask_restful import Resource
 
 # Local imports
 from config import app, db, api
 # Add your model imports
+from .models import User, Port, PortPair, ContainerType, Rate, Quote, QuoteRate
 
 
 # Views go here!
