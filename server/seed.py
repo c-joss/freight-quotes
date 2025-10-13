@@ -51,3 +51,6 @@ if __name__ == '__main__':
                     )
                 )
         db.session.add_all(rates)
+
+        db.session.commit()
+        print("Seeded!")
