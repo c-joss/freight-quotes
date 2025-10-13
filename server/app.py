@@ -134,6 +134,19 @@ class QuoteDetail(Resource):
         db.session.delete(q)
         db.session.commit()
         return {}, 204
+    
+api.add_resource(Signup, '/auth/signup')
+api.add_resource(Login,  '/auth/login')
+api.add_resource(Me,     '/auth/me')
+api.add_resource(Logout, '/auth/logout')
+
+api.add_resource(Ports, '/ports')
+api.add_resource(PortPairs, '/port_pairs')
+api.add_resource(ContainerTypes, '/container_types')
+api.add_resource(Rates, '/rates')
+
+api.add_resource(Quotes, '/quotes')
+api.add_resource(QuoteDetail, '/quotes/<int:qid>')
 
 
 if __name__ == '__main__':
