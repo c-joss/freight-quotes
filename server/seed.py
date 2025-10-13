@@ -38,3 +38,16 @@ if __name__ == '__main__':
         ct40 = ContainerType(code="40HC", description="40’ High Cube")
         db.session.add_all([ct20, ct40])
         db.session.flush()
+
+        rates = []
+        for pp in [pp1, pp2]:
+            for ct in [ct20, ct40]:
+                rates.append(
+                    Rate(
+                        port_pair_id=pp.id,
+                        container_type_id=ct.id,
+                        base_rate=randint(800, 1800),
+                        transit_days=randint(10, 25),
+                    )
+                )
+        db.session.add_all(rates)
