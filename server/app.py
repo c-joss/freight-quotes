@@ -11,6 +11,14 @@ from config import app, db, api
 # Add your model imports
 from .models import User, Port, PortPair, ContainerType, Rate, Quote, QuoteRate
 
+def current_user():
+    uid = session.get('user_id')
+    return User.query.get(uid) if uid else None
+
+def require_owner(record_user_id):
+    user = current_user()
+    return user and user.id == record_user_id
+
 
 # Views go here!
 
