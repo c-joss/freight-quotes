@@ -7,11 +7,18 @@ from random import randint, choice as rc
 from faker import Faker
 
 # Local imports
-from app import app
-from models import db
+from .config import app, db
+from .models import User, Port, PortPair, ContainerType, Rate
 
 if __name__ == '__main__':
     fake = Faker()
+    print("Starting seed...")
+    # Seed code goes here!
+
     with app.app_context():
-        print("Starting seed...")
-        # Seed code goes here!
+        db.drop_all()
+        db.create_all()
+
+        alice = User(email="alice@example.com"); alice.set_password("password")
+        bob = User(email="bob@example.com"); bob.set_password("password")
+        db.session.add_all([alice, bob])
