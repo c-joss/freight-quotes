@@ -17,19 +17,35 @@ export default function Login() {
       <Formik
         initialValues={{ email: "", password: "" }}
         validationSchema={schema}
-        onSubmit={() => {}}
+        onSubmit={async (values, actions) => {
+            const res = await fetch("/auth/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+                body: JSON.stringify(values),
+            });
+            const data = await res.json();
+            if (data.error) {
+                actions.setStatus(data.error);
+            } else {
+                if (typeof window.onLogin === "function") window.onLogin(data);
+                nav("/quotes");
+            }
+            }}
       >
-        <Form style={{ display: "grid", gap: 8, maxWidth: 320 }}>
-            <label>Email</label>
-            <Field name="email" type="email" />
-            <ErrorMessage name="email" component="div" style={{ color: "red" }} />
+        {({ isSubmitting, status }) => (
+            <Form style={{ display: "grid", gap: 8, maxWidth: 320 }}>
+                <label>Email</label>
+                <Field name="email" type="email" />
+                <ErrorMessage name="email" component="div" style={{ color: "red" }} />
 
-            <label>Password</label>
-            <Field name="password" type="password" />
-            <ErrorMessage name="password" component="div" style={{ color: "red" }} />
+                <label>Password</label>
+                <Field name="password" type="password" />
+                {status && <div style={{ color: "red" }}>{status}</div>}
 
-            <button type="submit">Log in</button>
-        </Form>
+                <button type="submit" disabled={isSubmitting}>Log in</button>
+            </Form>
+        )}
       </Formik>
     </div>
   );
