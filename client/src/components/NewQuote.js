@@ -14,5 +14,14 @@ export default function NewQuote({ user }) {
         fetch("/container_types").then((r) => r.json()).then(setTypes);
     }, []);
 
+    async function loadRates(ppId, ctId) {
+        if (ppId && ctId) {
+            const r = await fetch(`/rates?port_pair_id=${ppId}&container_type_id=${ctId}`);
+            setRates(await r.json());
+        } else {
+            setRates([]);
+        }
+    }
+
     return <h2>New Quote</h2>;
 }
