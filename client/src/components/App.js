@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Routes, Route, Link, useNavigate } from "react-router-dom";
-import Login from "../pages/Login";
-import QuotesList from "../pages/QuotesList";
-import NewQuote from "../pages/NewQuote";
-import QuoteDetail from "../pages/QuoteDetail";
+import Login from "./Login";
+import QuotesList from "./QuotesList";
+import NewQuote from "./NewQuote";
+import QuoteDetail from "./QuoteDetail";
 
 function App() {
   const [user, setUser] = useState(null);
