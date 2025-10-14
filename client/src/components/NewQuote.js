@@ -43,7 +43,20 @@ export default function NewQuote({ user }) {
         <Formik
           initialValues={{ title: '', port_pair_id: '', container_type_id: '', rate_ids: [] }}
           validationSchema={schema}
-          onSubmit={() => {}}
+          onSubmit={async ({ title, rate_ids }, actions) => {
+            const res = await fetch('/quotes', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'include',
+              body: JSON.stringify({ title, rate_ids }),
+            });
+            const data = await res.json();
+            if (data.error) {
+              actions.setStatus(data.error);
+            } else {
+              nav(`/quotes/${data.id}`);
+            }
+          }}
         >
           {({ values, setFieldValue, isSubmitting, status }) => (
             <Form style={{ display: 'grid', gap: 8, maxWidth: 480 }}>
