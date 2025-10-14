@@ -1,37 +1,35 @@
-import React, { useEffect, useState } from "react";
-import { Routes, Route, Link, useNavigate } from "react-router-dom";
-import Login from "./Login";
-import QuotesList from "./QuotesList";
-import NewQuote from "./NewQuote";
-import QuoteDetail from "./QuoteDetail";
+import React, { useEffect, useState } from 'react';
+import { Routes, Route, Link, useNavigate } from 'react-router-dom';
+import Login from './Login';
+import QuotesList from './QuotesList';
+import NewQuote from './NewQuote';
+import QuoteDetail from './QuoteDetail';
 
 function App() {
   const [user, setUser] = useState(null);
   const nav = useNavigate();
 
   useEffect(() => {
-    fetch("/auth/me", { credentials: "include" })
-    .then((r) => r.json())
-    .then((data) => {
-      if (!data.error) setUser(data);
-    });
+    fetch('/auth/me', { credentials: 'include' })
+      .then((r) => r.json())
+      .then((data) => {
+        if (!data.error) setUser(data);
+      });
   }, []);
 
   function handleLogout() {
-    fetch("/auth/logout", { method: "DELETE", credentials: "include" })
-    .then(() => {
+    fetch('/auth/logout', { method: 'DELETE', credentials: 'include' }).then(() => {
       setUser(null);
-      nav("/login");
+      nav('/login');
     });
   }
 
   return (
-    <div style={{ maxWidth: 900, margin: "0 auto", padding: 16 }}>
-      <nav style={{ display: "flex", gap: 12, marginBottom: 16 }}>
+    <div style={{ maxWidth: 900, margin: '0 auto', padding: 16 }}>
+      <nav style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
         <Link to="/quotes">Quotes</Link>
         <Link to="/quotes/new">New Quote</Link>
-        {!user ? <Link to="/login">Login</Link> :
-          <button onClick={handleLogout}>Logout</button>}
+        {!user ? <Link to="/login">Login</Link> : <button onClick={handleLogout}>Logout</button>}
       </nav>
 
       <Routes>
