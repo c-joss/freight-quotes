@@ -19,7 +19,17 @@ export default function Login() {
         validationSchema={schema}
         onSubmit={() => {}}
       >
-        <Form>form tba</Form>
+        <Form style={{ display: "grid", gap: 8, maxWidth: 320 }}>
+            <label>Email</label>
+            <Field name="email" type="email" />
+            <ErrorMessage name="email" component="div" style={{ color: "red" }} />
+
+            <label>Password</label>
+            <Field name="password" type="password" />
+            <ErrorMessage name="password" component="div" style={{ color: "red" }} />
+
+            <button type="submit">Log in</button>
+        </Form>
       </Formik>
     </div>
   );
