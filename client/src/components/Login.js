@@ -8,7 +8,7 @@ const schema = Yup.object({
     password: Yup.string().min(4, "min 4 chars").required("required"),
 });
 
-export default function Login() {
+export default function Login({ onLogin }) {
   const nav = useNavigate();
 
   return (
@@ -28,7 +28,7 @@ export default function Login() {
             if (data.error) {
                 actions.setStatus(data.error);
             } else {
-                if (typeof window.onLogin === "function") window.onLogin(data);
+                onLogin && onLogin(data);
                 nav("/quotes");
             }
             }}
