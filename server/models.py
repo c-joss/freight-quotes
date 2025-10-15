@@ -79,7 +79,7 @@ class Rate(db.Model, SerializerMixin):
     serialize_rules = (
         '-port_pair.rates',
         '-container_type.rates',
-        '-quote_rates.rate',
+        '-quote_rates',
     )
 
     id = db.Column(db.Integer, primary_key=True)

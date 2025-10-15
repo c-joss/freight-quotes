@@ -6,16 +6,25 @@ export default function QuoteDetail({ user }) {
   const { id } = useParams();
   const nav = useNavigate();
   const [quote, setQuote] = useState(null);
+  const [status, setStatus] = useState('');
 
   useEffect(() => {
     fetch(`/quotes/${id}`, { credentials: 'include' })
-      .then((r) => r.json())
-      .then(setQuote);
+      .then((r) => (r.ok ? r.json() : Promise.resolve({ error: r.status })))
+      .then((data) => {
+        if (data?.error) setStatus('failed to load quote');
+        setQuote(data || null);
+      })
+      .catch(() => {
+        setStatus('network error');
+        setQuote(null);
+      });
   }, [id]);
 
-  if (!quote) return <p>Loading…</p>;
+  if (!quote) return <p>{status || 'Loading…'}</p>;
 
   const isOwner = user && user.id === quote.user_id;
+  const rates = Array.isArray(quote.rates) ? quote.rates : [];
 
   async function handleDelete() {
     if (!isOwner) return;
@@ -35,13 +44,17 @@ export default function QuoteDetail({ user }) {
       </p>
 
       <h3>Selected Rates</h3>
-      <ul>
-        {quote.rates.map((r) => (
-          <li key={r.id}>
-            ${r.base_rate} — {r.transit_days} days
-          </li>
-        ))}
-      </ul>
+      {rates.length === 0 ? (
+        <p>No rates linked.</p>
+      ) : (
+        <ul>
+          {rates.map((r) => (
+            <li key={r.id}>
+              ${r.base_rate} — {r.transit_days} days
+            </li>
+          ))}
+        </ul>
+      )}
       {isOwner && (
         <>
           <h3>Edit</h3>

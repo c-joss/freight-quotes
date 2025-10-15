@@ -68,17 +68,31 @@ export default function NewQuote({ user }) {
           initialValues={{ title: '', port_pair_id: '', container_type_id: '', rate_ids: [] }}
           validationSchema={schema}
           onSubmit={async ({ title, rate_ids }, actions) => {
-            const res = await fetch('/quotes', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              credentials: 'include',
-              body: JSON.stringify({ title, rate_ids }),
-            });
-            const data = await res.json();
-            if (data.error) {
-              actions.setStatus(data.error);
-            } else {
+            try {
+              const res = await fetch('/quotes', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ title, rate_ids }),
+              });
+
+              if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                actions.setStatus(err.error || `create failed (${res.status})`);
+                return;
+              }
+
+              const data = await res.json();
+
+              if (!data || typeof data.id !== 'number') {
+                console.log('Unexpected create response:', data);
+                actions.setStatus('unexpected server response');
+                return;
+              }
+
               nav(`/quotes/${data.id}`);
+            } catch (e) {
+              actions.setStatus('network error');
             }
           }}
         >
@@ -102,7 +116,6 @@ export default function NewQuote({ user }) {
                 {Array.isArray(pairs) && pairs.length > 0 ? (
                   pairs.map((pp) => (
                     <option key={pp.id} value={pp.id}>
-                      {/* fallbacks in case names aren’t serialized */}
                       {pp.origin_port?.name ||
                         pp.origin_port?.code ||
                         `Origin ${pp.origin_port_id}`}{' '}

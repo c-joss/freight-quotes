@@ -97,26 +97,48 @@ class Quotes(Resource):
         if not user:
             return {"error": "login required"}, 401
 
-        data = request.get_json()
-        title = data.get('title', '').strip()
-        rate_ids = data.get('rate_ids', [])
-        if not title or not rate_ids:
-            return {"error": "title and rate_ids required"}, 400
+        data = request.get_json() or {}
+        title = (data.get("title") or "").strip()
+        raw_rate_ids = data.get("rate_ids") or []
 
-        q = Quote(title=title, status='draft', user_id=user.id)
-        db.session.add(q)
-        db.session.flush()
+        if not title:
+             return {"error": "title required"}, 400
+        if not isinstance(raw_rate_ids, list) or len(raw_rate_ids) == 0:
+            return {"error": "rate_ids must be a non-empty list"}, 400
 
-        for rid in rate_ids:
-            db.session.add(QuoteRate(quote_id=q.id, rate_id=rid))
+        try:
+            rate_ids = [int(x) for x in raw_rate_ids]
+        except (TypeError, ValueError):
+            return {"error": "rate_ids must be integers"}, 400
 
-        db.session.commit()
-        return q.to_dict(), 201
+        rates = Rate.query.filter(Rate.id.in_(rate_ids)).all()
+        if len(rates) != len(set(rate_ids)):
+            return {"error": "one or more rates not found"}, 400
+
+        try:
+            q = Quote(title=title, status="draft", user_id=user.id)
+            db.session.add(q)
+            db.session.flush()
+
+            for r in rates:
+                db.session.add(QuoteRate(quote_id=q.id, rate_id=r.id))
+
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            return {"error": "server failed to create quote"}, 500
+
+        return {
+            "id": q.id,
+            "title": q.title,
+            "status": q.status,
+            "user_id": q.user_id,
+        }, 201
     
 class QuoteDetail(Resource):
     def get(self, qid):
         q = Quote.query.get_or_404(qid)
-        return q.to_dict(), 200
+        return q.to_dict(rules=('rates',)), 200
 
     def patch(self, qid):
         q = Quote.query.get_or_404(qid)
