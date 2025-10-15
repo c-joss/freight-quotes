@@ -24,6 +24,7 @@ class Port(db.Model, SerializerMixin):
         back_populates="destination_port",
         foreign_keys="PortPair.destination_port_id",
     )
+    serialize_rules = ('-origin_pairs', '-dest_pairs',)
 
     @validates('code')
     def validate_code(self, key, val):
@@ -42,6 +43,7 @@ class ContainerType(db.Model, SerializerMixin):
         back_populates="container_type",
         cascade="all, delete-orphan",
     )
+    serialize_rules = ('-rates',)
 
 class PortPair(db.Model, SerializerMixin):
     __tablename__ = 'port_pairs'

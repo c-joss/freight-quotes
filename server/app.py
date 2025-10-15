@@ -62,11 +62,20 @@ class Ports(Resource):
     
 class PortPairs(Resource):
     def get(self):
-        return [pp.to_dict() for pp in PortPair.query.all()], 200
+        pps = PortPair.query.all()
+        return [
+            pp.to_dict(rules=(
+                '-rates',
+                'origin_port',
+                'destination_port'
+            ))
+            for pp in pps
+        ], 200
 
 class ContainerTypes(Resource):
     def get(self):
-        return [ct.to_dict() for ct in ContainerType.query.all()], 200
+        cts = ContainerType.query.all()
+        return [ct.to_dict(rules=('-rates',)) for ct in cts], 200
     
 class Rates(Resource):
     def get(self):

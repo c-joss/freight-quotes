@@ -17,18 +17,42 @@ export default function NewQuote({ user }) {
   const [rates, setRates] = useState([]);
 
   useEffect(() => {
-    fetch('/port_pairs')
-      .then((r) => r.json())
-      .then(setPairs);
-    fetch('/container_types')
-      .then((r) => r.json())
-      .then(setTypes);
+    fetch('/port_pairs', { credentials: 'include' })
+      .then((r) => (r.ok ? r.json() : Promise.resolve([])))
+      .then((data) => {
+        console.log('port_pairs:', data);
+        setPairs(Array.isArray(data) ? data : []);
+      })
+      .catch((e) => {
+        console.error('port_pairs error', e);
+        setPairs([]);
+      });
+
+    fetch('/container_types', { credentials: 'include' })
+      .then((r) => (r.ok ? r.json() : Promise.resolve([])))
+      .then((data) => {
+        console.log('container_types:', data);
+        setTypes(Array.isArray(data) ? data : []);
+      })
+      .catch((e) => {
+        console.error('container_types error', e);
+        setTypes([]);
+      });
   }, []);
 
   async function loadRates(ppId, ctId) {
     if (ppId && ctId) {
-      const r = await fetch(`/rates?port_pair_id=${ppId}&container_type_id=${ctId}`);
-      setRates(await r.json());
+      try {
+        const r = await fetch(`/rates?port_pair_id=${ppId}&container_type_id=${ctId}`, {
+          credentials: 'include',
+        });
+        const data = await r.json();
+        console.log('rates:', data);
+        setRates(Array.isArray(data) ? data : []);
+      } catch (e) {
+        console.error('rates error', e);
+        setRates([]);
+      }
     } else {
       setRates([]);
     }
@@ -75,15 +99,26 @@ export default function NewQuote({ user }) {
                 }}
               >
                 <option value="">Choose…</option>
-                {pairs.map((pp) => (
-                  <option key={pp.id} value={pp.id}>
-                    {pp.origin_port.name} → {pp.destination_port.name}
+                {Array.isArray(pairs) && pairs.length > 0 ? (
+                  pairs.map((pp) => (
+                    <option key={pp.id} value={pp.id}>
+                      {/* fallbacks in case names aren’t serialized */}
+                      {pp.origin_port?.name ||
+                        pp.origin_port?.code ||
+                        `Origin ${pp.origin_port_id}`}{' '}
+                      →
+                      {pp.destination_port?.name ||
+                        pp.destination_port?.code ||
+                        `Dest ${pp.destination_port_id}`}
+                    </option>
+                  ))
+                ) : (
+                  <option disabled value="">
+                    No port pairs (seed the DB)
                   </option>
-                ))}
+                )}
               </Field>
-              <ErrorMessage name="port_pair_id" component="div" style={{ color: 'red' }} />
 
-              <label>Container Type</label>
               <Field
                 as="select"
                 name="container_type_id"
@@ -94,11 +129,17 @@ export default function NewQuote({ user }) {
                 }}
               >
                 <option value="">Choose…</option>
-                {types.map((ct) => (
-                  <option key={ct.id} value={ct.id}>
-                    {ct.code}
+                {Array.isArray(types) && types.length > 0 ? (
+                  types.map((ct) => (
+                    <option key={ct.id} value={ct.id}>
+                      {ct.code || `Type ${ct.id}`}
+                    </option>
+                  ))
+                ) : (
+                  <option disabled value="">
+                    No container types (seed the DB)
                   </option>
-                ))}
+                )}
               </Field>
               <ErrorMessage name="container_type_id" component="div" style={{ color: 'red' }} />
 

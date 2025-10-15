@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
 
+try:
+    from server.config import app, db
+    from server.models import User, Port, PortPair, ContainerType, Rate
+except ImportError:
+    from config import app, db
+    from models import User, Port, PortPair, ContainerType, Rate
+
 # Standard library imports
 from random import randint, choice as rc
 
@@ -7,8 +14,6 @@ from random import randint, choice as rc
 from faker import Faker
 
 # Local imports
-from .config import app, db
-from .models import User, Port, PortPair, ContainerType, Rate
 
 if __name__ == '__main__':
     fake = Faker()
