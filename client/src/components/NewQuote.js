@@ -85,12 +85,11 @@ export default function NewQuote({ user }) {
               const data = await res.json();
 
               if (!data || typeof data.id !== 'number') {
-                console.log('Unexpected create response:', data);
                 actions.setStatus('unexpected server response');
                 return;
               }
 
-              nav(`/quotes/${data.id}`);
+              nav('/quotes');
             } catch (e) {
               actions.setStatus('network error');
             }
@@ -98,7 +97,7 @@ export default function NewQuote({ user }) {
         >
           {({ values, setFieldValue, isSubmitting, status }) => (
             <Form style={{ display: 'grid', gap: 8, maxWidth: 480 }}>
-              <label>Title</label>
+              <label>Company Name</label>
               <Field name="title" />
               <ErrorMessage name="title" component="div" style={{ color: 'red' }} />
 
@@ -132,6 +131,7 @@ export default function NewQuote({ user }) {
                 )}
               </Field>
 
+              <label>Container</label>
               <Field
                 as="select"
                 name="container_type_id"
@@ -157,7 +157,7 @@ export default function NewQuote({ user }) {
               <ErrorMessage name="container_type_id" component="div" style={{ color: 'red' }} />
 
               <fieldset>
-                <legend>Rates</legend>
+                <legend>Rate</legend>
                 {rates.length === 0 && <p>Select port pair and container type to see rates.</p>}
                 {rates.map((r) => (
                   <label key={r.id} style={{ display: 'block' }}>
@@ -180,7 +180,7 @@ export default function NewQuote({ user }) {
 
               {status && <div style={{ color: 'red' }}>{status}</div>}
               <button type="submit" disabled={isSubmitting}>
-                Create Quote
+                Confirm Quote
               </button>
             </Form>
           )}

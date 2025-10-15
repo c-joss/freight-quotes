@@ -43,7 +43,7 @@ export default function QuoteDetail({ user }) {
         <strong>Status:</strong> {quote.status}
       </p>
 
-      <h3>Selected Rates</h3>
+      <h3>Rate</h3>
       {rates.length === 0 ? (
         <p>No rates linked.</p>
       ) : (
@@ -78,8 +78,8 @@ export default function QuoteDetail({ user }) {
 
               <label>Status</label>
               <Field as="select" name="status">
-                <option value="draft">draft</option>
-                <option value="published">published</option>
+                <option value="Confirmed">Confirmed</option>
+                <option value="Accepted">Accepted</option>
               </Field>
 
               <button type="submit">Save</button>

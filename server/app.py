@@ -116,7 +116,7 @@ class Quotes(Resource):
             return {"error": "one or more rates not found"}, 400
 
         try:
-            q = Quote(title=title, status="draft", user_id=user.id)
+            q = Quote(title=title, status="Confirmed", user_id=user.id)
             db.session.add(q)
             db.session.flush()
 
@@ -145,7 +145,7 @@ class QuoteDetail(Resource):
         if not require_owner(q.user_id):
             return {"error": "forbidden"}, 403
 
-        data = request.get_json()
+        data = request.get_json() or {}
         if 'title' in data:
             q.title = data['title'] or q.title
         if 'status' in data:
@@ -153,10 +153,10 @@ class QuoteDetail(Resource):
         if 'rate_ids' in data:
             QuoteRate.query.filter_by(quote_id=q.id).delete()
             for rid in data['rate_ids']:
-                db.session.add(QuoteRate(quote_id=q.id, rate_id=rid))
+                db.session.add(QuoteRate(quote_id=q.id, rate_id=int(rid)))
 
         db.session.commit()
-        return q.to_dict(), 200
+        return q.to_dict(rules=('rates',)), 200
 
     def delete(self, qid):
         q = Quote.query.get_or_404(qid)

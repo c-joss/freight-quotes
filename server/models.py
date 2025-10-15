@@ -123,7 +123,7 @@ class Quote(db.Model, SerializerMixin):
 
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String, nullable=False)
-    status = db.Column(db.String, nullable=False, default='draft')
+    status = db.Column(db.String, nullable=False, default='Confirmed')
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
 
     user = relationship("User", back_populates="quotes")
@@ -137,6 +137,13 @@ class Quote(db.Model, SerializerMixin):
     @property
     def rates(self):
         return [qr.rate for qr in self.quote_rates]
+    
+    @validates('status')
+    def validate_status(self, key, value):
+        allowed = ['Confirmed', 'Accepted']
+        if value not in allowed:
+            raise ValueError(f"Status must be one of {allowed}")
+        return value
     
 class QuoteRate(db.Model, SerializerMixin):
     __tablename__ = 'quote_rates'

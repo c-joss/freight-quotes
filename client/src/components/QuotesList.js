@@ -32,8 +32,13 @@ export default function QuotesList({ user }) {
         <ul>
           {quotes.map((q) => (
             <li key={q.id}>
-              <Link to={`/quotes/${q.id}`}>{q.title}</Link> — {q.status}
-              {user && user.id === q.user_id && <span> (you)</span>}
+              <span>{q.title}</span> — {q.status}
+              {user && user.id === q.user_id && (
+                <>
+                  {' '}
+                  <Link to={`/quotes/${q.id}`}>edit</Link>
+                </>
+              )}
             </li>
           ))}
         </ul>
