@@ -64,127 +64,129 @@ export default function NewQuote({ user }) {
       {!user ? (
         <p>Please log in.</p>
       ) : (
-        <Formik
-          initialValues={{ title: '', port_pair_id: '', container_type_id: '', rate_ids: [] }}
-          validationSchema={schema}
-          onSubmit={async ({ title, rate_ids }, actions) => {
-            try {
-              const res = await fetch('/quotes', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify({ title, rate_ids }),
-              });
+        <div className="form-container">
+          <Formik
+            initialValues={{ title: '', port_pair_id: '', container_type_id: '', rate_ids: [] }}
+            validationSchema={schema}
+            onSubmit={async ({ title, rate_ids }, actions) => {
+              try {
+                const res = await fetch('/quotes', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  credentials: 'include',
+                  body: JSON.stringify({ title, rate_ids }),
+                });
 
-              if (!res.ok) {
-                const err = await res.json().catch(() => ({}));
-                actions.setStatus(err.error || `create failed (${res.status})`);
-                return;
+                if (!res.ok) {
+                  const err = await res.json().catch(() => ({}));
+                  actions.setStatus(err.error || `create failed (${res.status})`);
+                  return;
+                }
+
+                const data = await res.json();
+
+                if (!data || typeof data.id !== 'number') {
+                  actions.setStatus('unexpected server response');
+                  return;
+                }
+
+                nav('/quotes');
+              } catch (e) {
+                actions.setStatus('network error');
               }
+            }}
+          >
+            {({ values, setFieldValue, isSubmitting, status }) => (
+              <Form>
+                <label>Company Name</label>
+                <Field name="title" />
+                <ErrorMessage name="title" component="div" className="error" />
 
-              const data = await res.json();
-
-              if (!data || typeof data.id !== 'number') {
-                actions.setStatus('unexpected server response');
-                return;
-              }
-
-              nav('/quotes');
-            } catch (e) {
-              actions.setStatus('network error');
-            }
-          }}
-        >
-          {({ values, setFieldValue, isSubmitting, status }) => (
-            <Form style={{ display: 'grid', gap: 8, maxWidth: 480 }}>
-              <label>Company Name</label>
-              <Field name="title" />
-              <ErrorMessage name="title" component="div" style={{ color: 'red' }} />
-
-              <label>Port Pair</label>
-              <Field
-                as="select"
-                name="port_pair_id"
-                onChange={(e) => {
-                  const val = Number(e.target.value);
-                  setFieldValue('port_pair_id', val);
-                  loadRates(val, values.container_type_id);
-                }}
-              >
-                <option value="">Choose…</option>
-                {Array.isArray(pairs) && pairs.length > 0 ? (
-                  pairs.map((pp) => (
-                    <option key={pp.id} value={pp.id}>
-                      {pp.origin_port?.name ||
-                        pp.origin_port?.code ||
-                        `Origin ${pp.origin_port_id}`}{' '}
-                      →
-                      {pp.destination_port?.name ||
-                        pp.destination_port?.code ||
-                        `Dest ${pp.destination_port_id}`}
+                <label>Port Pair</label>
+                <Field
+                  as="select"
+                  name="port_pair_id"
+                  onChange={(e) => {
+                    const val = Number(e.target.value);
+                    setFieldValue('port_pair_id', val);
+                    loadRates(val, values.container_type_id);
+                  }}
+                >
+                  <option value="">Choose…</option>
+                  {Array.isArray(pairs) && pairs.length > 0 ? (
+                    pairs.map((pp) => (
+                      <option key={pp.id} value={pp.id}>
+                        {pp.origin_port?.name ||
+                          pp.origin_port?.code ||
+                          `Origin ${pp.origin_port_id}`}{' '}
+                        →
+                        {pp.destination_port?.name ||
+                          pp.destination_port?.code ||
+                          `Dest ${pp.destination_port_id}`}
+                      </option>
+                    ))
+                  ) : (
+                    <option disabled value="">
+                      No port pairs (seed the DB)
                     </option>
-                  ))
-                ) : (
-                  <option disabled value="">
-                    No port pairs (seed the DB)
-                  </option>
-                )}
-              </Field>
+                  )}
+                </Field>
 
-              <label>Container</label>
-              <Field
-                as="select"
-                name="container_type_id"
-                onChange={(e) => {
-                  const val = Number(e.target.value);
-                  setFieldValue('container_type_id', val);
-                  loadRates(values.port_pair_id, val);
-                }}
-              >
-                <option value="">Choose…</option>
-                {Array.isArray(types) && types.length > 0 ? (
-                  types.map((ct) => (
-                    <option key={ct.id} value={ct.id}>
-                      {ct.code || `Type ${ct.id}`}
+                <label>Container</label>
+                <Field
+                  as="select"
+                  name="container_type_id"
+                  onChange={(e) => {
+                    const val = Number(e.target.value);
+                    setFieldValue('container_type_id', val);
+                    loadRates(values.port_pair_id, val);
+                  }}
+                >
+                  <option value="">Choose…</option>
+                  {Array.isArray(types) && types.length > 0 ? (
+                    types.map((ct) => (
+                      <option key={ct.id} value={ct.id}>
+                        {ct.code || `Type ${ct.id}`}
+                      </option>
+                    ))
+                  ) : (
+                    <option disabled value="">
+                      No container types (seed the DB)
                     </option>
-                  ))
-                ) : (
-                  <option disabled value="">
-                    No container types (seed the DB)
-                  </option>
-                )}
-              </Field>
-              <ErrorMessage name="container_type_id" component="div" style={{ color: 'red' }} />
+                  )}
+                </Field>
+                <ErrorMessage name="container_type_id" component="div" className="error" />
 
-              <fieldset>
-                <legend>Rate</legend>
-                {rates.length === 0 && <p>Select port pair and container type to see rates.</p>}
-                {rates.map((r) => (
-                  <label key={r.id} style={{ display: 'block' }}>
-                    <input
-                      type="checkbox"
-                      checked={values.rate_ids.includes(r.id)}
-                      onChange={(e) => {
-                        const next = e.target.checked
-                          ? [...values.rate_ids, r.id]
-                          : values.rate_ids.filter((id) => id !== r.id);
-                        setFieldValue('rate_ids', next);
-                      }}
-                    />
-                    ${''}
-                    {r.base_rate} — {r.transit_days} days
-                  </label>
-                ))}
-                <ErrorMessage name="rate_ids" component="div" style={{ color: 'red' }} />
-              </fieldset>
+                <fieldset>
+                  <legend>Rate</legend>
+                  {rates.length === 0 && <p>Select port pair and container type to see rates.</p>}
+                  {rates.map((r) => (
+                    <label key={r.id} style={{ display: 'block' }}>
+                      <input
+                        type="checkbox"
+                        checked={values.rate_ids.includes(r.id)}
+                        onChange={(e) => {
+                          const next = e.target.checked
+                            ? [...values.rate_ids, r.id]
+                            : values.rate_ids.filter((id) => id !== r.id);
+                          setFieldValue('rate_ids', next);
+                        }}
+                      />
+                      ${''}
+                      {r.base_rate} — {r.transit_days} days
+                    </label>
+                  ))}
+                  <ErrorMessage name="rate_ids" component="div" className="error" />
+                </fieldset>
 
-              {status && <div style={{ color: 'red' }}>{status}</div>}
-              <button type="submit" disabled={isSubmitting}>
-                Confirm Quote
-              </button>
-            </Form>
-          )}
-        </Formik>
+                {status && <div className="error">{status}</div>}
+                <button className="btn btn-primary" type="submit" disabled={isSubmitting}>
+                  Confirm Quote
+                </button>
+              </Form>
+            )}
+          </Formik>
+        </div>
       )}
     </div>
   );

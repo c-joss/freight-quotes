@@ -25,14 +25,16 @@ export default function QuotesList({ user }) {
   return (
     <div>
       <h2>Quotes</h2>
-      {!user && <p>(Log in to create, edit, or delete)</p>}
+      {!user && <p className="error">(Log in to create, edit, or delete)</p>}
       {quotes.length === 0 ? (
         <p>No quotes yet.</p>
       ) : (
-        <ul>
+        <ul className="list">
           {quotes.map((q) => (
-            <li key={q.id}>
-              <span>{q.title}</span> — {q.status}
+            <li key={q.id} className="card">
+              <span>{q.title}</span>
+              {' — '}
+              <strong>{q.status}</strong>
               {user && user.id === q.user_id && (
                 <>
                   {' '}

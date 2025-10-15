@@ -1,3 +1,4 @@
+import '../styles.css';
 import React, { useEffect, useState } from 'react';
 import { Routes, Route, Link, useNavigate } from 'react-router-dom';
 import Login from './Login';
@@ -25,11 +26,18 @@ function App() {
   }
 
   return (
-    <div style={{ maxWidth: 900, margin: '0 auto', padding: 16 }}>
-      <nav style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
+    <div className="app">
+      <nav className="nav">
         <Link to="/quotes">Quotes</Link>
         <Link to="/quotes/new">New Quote</Link>
-        {!user ? <Link to="/login">Login</Link> : <button onClick={handleLogout}>Logout</button>}
+        <span className="spacer" />
+        {!user ? (
+          <Link to="/login">Login</Link>
+        ) : (
+          <button className="btn btn-ghost" onClick={handleLogout}>
+            Logout
+          </button>
+        )}
       </nav>
 
       <Routes>

@@ -40,7 +40,12 @@ export default function QuoteDetail({ user }) {
         <strong>Title:</strong> {quote.title}
       </p>
       <p>
-        <strong>Status:</strong> {quote.status}
+        <strong>Status:</strong>{' '}
+        <span
+          className={`pill ${quote.status === 'Confirmed' ? 'pill-confirmed' : 'pill-accepted'}`}
+        >
+          {quote.status}
+        </span>
       </p>
 
       <h3>Rate</h3>
@@ -57,38 +62,42 @@ export default function QuoteDetail({ user }) {
       )}
       {isOwner && (
         <>
-          <h3>Edit</h3>
-          <Formik
-            initialValues={{ title: quote.title, status: quote.status }}
-            enableReinitialize
-            onSubmit={async (values) => {
-              const res = await fetch(`/quotes/${id}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify(values),
-              });
-              const data = await res.json();
-              setQuote(data);
-            }}
-          >
-            <Form style={{ display: 'grid', gap: 8, maxWidth: 320 }}>
-              <label>Title</label>
-              <Field name="title" />
+          <div className="form-container">
+            <h3>Edit</h3>
+            <Formik
+              initialValues={{ title: quote.title, status: quote.status }}
+              enableReinitialize
+              onSubmit={async (values) => {
+                const res = await fetch(`/quotes/${id}`, {
+                  method: 'PATCH',
+                  headers: { 'Content-Type': 'application/json' },
+                  credentials: 'include',
+                  body: JSON.stringify(values),
+                });
+                const data = await res.json();
+                setQuote(data);
+              }}
+            >
+              <Form>
+                <label>Title</label>
+                <Field name="title" />
 
-              <label>Status</label>
-              <Field as="select" name="status">
-                <option value="Confirmed">Confirmed</option>
-                <option value="Accepted">Accepted</option>
-              </Field>
+                <label>Status</label>
+                <Field as="select" name="status">
+                  <option value="Confirmed">Confirmed</option>
+                  <option value="Accepted">Accepted</option>
+                </Field>
 
-              <button type="submit">Save</button>
-            </Form>
-          </Formik>
+                <button className="btn btn-primary" type="submit">
+                  Save
+                </button>
+              </Form>
+            </Formik>
 
-          <button style={{ marginTop: 12 }} onClick={handleDelete}>
-            Delete
-          </button>
+            <button className="btn btn-danger" style={{ marginTop: 12 }} onClick={handleDelete}>
+              Delete
+            </button>
+          </div>
         </>
       )}
     </div>
