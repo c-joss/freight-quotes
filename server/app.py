@@ -37,12 +37,12 @@ class Signup(Resource):
     
 class Login(Resource):
     def post(self):
-        data = request.get_json()
-        u = User.query.filter_by(email=data('email')).first()
+        data = request.get_json() or {}
+        u = User.query.filter_by(email=data.get('email')).first()
         if not u or not u.check_password(data.get('password')):
             return {"error": "invalid login"}, 401
         session['user_id'] = u.id
-        return u.to_ditch(), 200
+        return u.to_dict(), 200
     
 class Me(Resource):
     def get(self):
@@ -58,7 +58,7 @@ class Logout(Resource):
 
 class Ports(Resource):
     def get(self):
-        return [p.to_dict() for p in Port.query.all()], 200
+        return [p.to_dict(rules=('-origin_pairs', '-dest_pairs')) for p in Port.query.all()], 200
     
 class PortPairs(Resource):
     def get(self):
@@ -98,7 +98,7 @@ class Quotes(Resource):
             return {"error": "login required"}, 401
 
         data = request.get_json()
-        title = data.get('title')
+        title = data.get('title', '').strip()
         rate_ids = data.get('rate_ids', [])
         if not title or not rate_ids:
             return {"error": "title and rate_ids required"}, 400
