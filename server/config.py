@@ -1,6 +1,7 @@
 # Standard library imports
 
 # Remote library imports
+import os
 from flask import Flask
 from flask_cors import CORS
 from flask_migrate import Migrate
@@ -14,8 +15,10 @@ from sqlalchemy import MetaData
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = 'dev-secret'
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret')
 app.json.compact = False
+
+db_url = os.getenv('DATABASE_URL', 'sqlite:///app.db')
 
 # Define metadata, instantiate db
 metadata = MetaData(naming_convention={
@@ -29,4 +32,5 @@ db.init_app(app)
 api = Api(app)
 
 # Instantiate CORS
-CORS(app, supports_credentials=True)
+frontend_origin = os.getenv("FRONTEND_ORIGIN", "*")
+CORS(app, resources={r"/*": {"origins": frontend_origin}}, supports_credentials=True)
