@@ -160,22 +160,27 @@ export default function NewQuote({ user }) {
                 <fieldset>
                   <legend>Rate</legend>
                   {rates.length === 0 && <p>Select port pair and container type to see rates.</p>}
-                  {rates.map((r) => (
-                    <label key={r.id} style={{ display: 'block' }}>
-                      <input
-                        type="checkbox"
-                        checked={values.rate_ids.includes(r.id)}
-                        onChange={(e) => {
-                          const next = e.target.checked
-                            ? [...values.rate_ids, r.id]
-                            : values.rate_ids.filter((id) => id !== r.id);
-                          setFieldValue('rate_ids', next);
-                        }}
-                      />
-                      ${''}
-                      {r.base_rate} — {r.transit_days} days
-                    </label>
-                  ))}
+                  {rates.length > 0 && (
+                    <div className="rate-list">
+                      {rates.map((r) => (
+                        <label key={r.id} className="rate-item">
+                          <input
+                            type="checkbox"
+                            checked={values.rate_ids.includes(r.id)}
+                            onChange={(e) => {
+                              const next = e.target.checked
+                                ? [...values.rate_ids, r.id]
+                                : values.rate_ids.filter((id) => id !== r.id);
+                              setFieldValue('rate_ids', next);
+                            }}
+                          />
+                          <span>
+                            ${r.base_rate} — {r.transit_days} days
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
                   <ErrorMessage name="rate_ids" component="div" className="error" />
                 </fieldset>
 
