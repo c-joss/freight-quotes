@@ -24,7 +24,18 @@ export default function QuoteDetail({ user }) {
   if (!quote) return <p>{status || 'Loading…'}</p>;
 
   const isOwner = user && user.id === quote.user_id;
+  const isAccepted = quote.status === 'Accepted';
+
+  const mailtoHref = `mailto:booking@freight-quotes.com?subject=${encodeURIComponent(
+    `Booking request for Quote #${id}`,
+  )}&body=${encodeURIComponent(
+    `Hello,\n\nPlease create a booking for Quote #${id} (${quote.title}).\n\nThank you.`,
+  )}`;
+
   const rates = Array.isArray(quote.rates) ? quote.rates : [];
+  const formattedRates = rates
+    .map((rate) => `$${rate.base_rate} — ${rate.transit_days} days`)
+    .join(' • ');
 
   async function handleDelete() {
     if (!isOwner) return;
@@ -32,74 +43,81 @@ export default function QuoteDetail({ user }) {
     nav('/quotes');
   }
 
+  console.log('Quote status:', quote.status);
+
   return (
-    <div>
-      <h2>Quote #{id}</h2>
+    <div className="page page-center">
+      <div className="title-bar">
+        <h2 className="page-title no-margin">Quote #{id}</h2>
+        {isAccepted && (
+          <a href={mailtoHref} className="btn btn-secondary request-btn">
+            Request Booking
+          </a>
+        )}
+      </div>
+
       {!isOwner && <p>(Read-only)</p>}
-      <p>
-        <strong>Title:</strong> {quote.title}
-      </p>
-      <p>
-        <strong>Status:</strong>{' '}
-        <span
-          className={`pill ${quote.status === 'Confirmed' ? 'pill-confirmed' : 'pill-accepted'}`}
-        >
-          {quote.status}
-        </span>
-      </p>
+      <div className="form-container">
+        <p>
+          <strong>Company Name:</strong> {quote.title}
+        </p>
+        <p>
+          <strong>Status:</strong>{' '}
+          <span
+            className={`pill ${quote.status === 'Confirmed' ? 'pill-confirmed' : 'pill-accepted'}`}
+          >
+            {quote.status}
+          </span>
+        </p>
 
-      <h3>Rate</h3>
-      {rates.length === 0 ? (
-        <p>No rates linked.</p>
-      ) : (
-        <ul>
-          {rates.map((r) => (
-            <li key={r.id}>
-              ${r.base_rate} — {r.transit_days} days
-            </li>
-          ))}
-        </ul>
-      )}
-      {isOwner && (
-        <>
-          <div className="form-container">
-            <h3>Edit</h3>
-            <Formik
-              initialValues={{ title: quote.title, status: quote.status }}
-              enableReinitialize
-              onSubmit={async (values) => {
-                const res = await fetch(`/quotes/${id}`, {
-                  method: 'PATCH',
-                  headers: { 'Content-Type': 'application/json' },
-                  credentials: 'include',
-                  body: JSON.stringify(values),
-                });
-                const data = await res.json();
-                setQuote(data);
-              }}
-            >
-              <Form>
-                <label>Title</label>
-                <Field name="title" />
+        <p>
+          <strong>Rate:</strong> {rates.length === 0 ? 'None' : formattedRates}
+        </p>
+        {isOwner && (
+          <>
+            <div className="form-container">
+              <h3>Edit</h3>
+              <Formik
+                initialValues={{ title: quote.title, status: quote.status }}
+                enableReinitialize
+                onSubmit={async (values) => {
+                  const res = await fetch(`/quotes/${id}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify(values),
+                  });
+                  const data = await res.json();
+                  setQuote(data);
+                }}
+              >
+                <Form>
+                  <label>Title</label>
+                  <Field name="title" />
 
-                <label>Status</label>
-                <Field as="select" name="status">
-                  <option value="Confirmed">Confirmed</option>
-                  <option value="Accepted">Accepted</option>
-                </Field>
+                  <label>Status</label>
+                  <Field as="select" name="status">
+                    <option value="Confirmed">Confirmed</option>
+                    <option value="Accepted">Accepted</option>
+                  </Field>
 
-                <button className="btn btn-primary" type="submit">
-                  Save
-                </button>
-              </Form>
-            </Formik>
+                  <button className="btn btn-primary" type="submit">
+                    Save
+                  </button>
+                </Form>
+              </Formik>
 
-            <button className="btn btn-danger" style={{ marginTop: 12 }} onClick={handleDelete}>
-              Delete
-            </button>
-          </div>
-        </>
-      )}
+              <button
+                className="btn btn-danger btn-center btn-lg"
+                style={{ marginTop: 12 }}
+                onClick={handleDelete}
+              >
+                Delete
+              </button>
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }

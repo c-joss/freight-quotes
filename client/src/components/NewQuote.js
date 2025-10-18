@@ -59,8 +59,8 @@ export default function NewQuote({ user }) {
   }
 
   return (
-    <div>
-      <h2>New Quote</h2>
+    <div className="page page-center">
+      <h2 className="page-title">New Quote</h2>
       {!user ? (
         <p>Please log in.</p>
       ) : (
