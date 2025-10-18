@@ -40,12 +40,9 @@ export default function QuoteDetail({ user }) {
 
   return (
     <div className="page page-center">
-      <div className="title-bar">
-        <h2 className="page-title">Quote #{id}</h2>
-      </div>
-
-      {!isOwner && <p>(Read-only)</p>}
       <div className="form-container">
+        <h2 className="page-title">Quote #{id}</h2>
+        {!isOwner && <p>(Read-only)</p>}
         <p>
           <strong>Company Name:</strong> {quote.title}
         </p>
