@@ -55,12 +55,14 @@ export default function QuotesList({ user }) {
                   </>
                 )}
 
-                {isOwner && (
-                  <>
-                    <span className="sep"> </span>
-                    <Link to={`/quotes/${q.id}`}>edit</Link>
-                  </>
-                )}
+                <span className="right-actions">
+                  {isOwner && (
+                    <>
+                      <span className="sep"> </span>
+                      <Link to={`/quotes/${q.id}`}>edit</Link>
+                    </>
+                  )}
+                </span>
               </li>
             );
           })}
