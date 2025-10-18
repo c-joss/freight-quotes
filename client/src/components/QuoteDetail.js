@@ -24,13 +24,6 @@ export default function QuoteDetail({ user }) {
   if (!quote) return <p>{status || 'Loading…'}</p>;
 
   const isOwner = user && user.id === quote.user_id;
-  const isAccepted = quote.status === 'Accepted';
-
-  const mailtoHref = `mailto:booking@freight-quotes.com?subject=${encodeURIComponent(
-    `Booking request for Quote #${id}`,
-  )}&body=${encodeURIComponent(
-    `Hello,\n\nPlease create a booking for Quote #${id} (${quote.title}).\n\nThank you.`,
-  )}`;
 
   const rates = Array.isArray(quote.rates) ? quote.rates : [];
   const formattedRates = rates
@@ -48,12 +41,7 @@ export default function QuoteDetail({ user }) {
   return (
     <div className="page page-center">
       <div className="title-bar">
-        <h2 className="page-title no-margin">Quote #{id}</h2>
-        {isAccepted && (
-          <a href={mailtoHref} className="btn btn-secondary request-btn">
-            Request Booking
-          </a>
-        )}
+        <h2 className="page-title">Quote #{id}</h2>
       </div>
 
       {!isOwner && <p>(Read-only)</p>}
