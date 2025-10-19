@@ -1,3 +1,4 @@
+import { apiFetch } from '../api';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
@@ -20,10 +21,8 @@ export default function Login({ onLogin }) {
             initialValues={{ email: '', password: '' }}
             validationSchema={schema}
             onSubmit={async (values, actions) => {
-              const res = await fetch('/auth/login', {
+              const res = await apiFetch('/auth/login', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
                 body: JSON.stringify(values),
               });
               const data = await res.json();
