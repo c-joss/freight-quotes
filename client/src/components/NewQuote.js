@@ -1,3 +1,4 @@
+import { apiFetch } from '../api';
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
@@ -17,7 +18,7 @@ export default function NewQuote({ user }) {
   const [rates, setRates] = useState([]);
 
   useEffect(() => {
-    fetch('/port_pairs', { credentials: 'include' })
+    apiFetch('/port_pairs')
       .then((r) => (r.ok ? r.json() : Promise.resolve([])))
       .then((data) => {
         console.log('port_pairs:', data);
@@ -28,7 +29,7 @@ export default function NewQuote({ user }) {
         setPairs([]);
       });
 
-    fetch('/container_types', { credentials: 'include' })
+    apiFetch('/container_types')
       .then((r) => (r.ok ? r.json() : Promise.resolve([])))
       .then((data) => {
         console.log('container_types:', data);
@@ -43,9 +44,7 @@ export default function NewQuote({ user }) {
   async function loadRates(ppId, ctId) {
     if (ppId && ctId) {
       try {
-        const r = await fetch(`/rates?port_pair_id=${ppId}&container_type_id=${ctId}`, {
-          credentials: 'include',
-        });
+        const r = await apiFetch(`/rates?port_pair_id=${ppId}&container_type_id=${ctId}`);
         const data = await r.json();
         console.log('rates:', data);
         setRates(Array.isArray(data) ? data : []);
@@ -70,10 +69,8 @@ export default function NewQuote({ user }) {
             validationSchema={schema}
             onSubmit={async ({ title, rate_ids }, actions) => {
               try {
-                const res = await fetch('/quotes', {
+                const res = await apiFetch('/quotes', {
                   method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  credentials: 'include',
                   body: JSON.stringify({ title, rate_ids }),
                 });
 
