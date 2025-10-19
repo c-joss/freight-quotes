@@ -7,21 +7,46 @@ export default function QuotesList({ user }) {
   const [status, setStatus] = useState('');
 
   useEffect(() => {
+    if (!user) {
+      setQuotes([]);
+      setStatus('');
+      return;
+    }
+
+    let cancelled = false;
     apiFetch('/quotes')
-      .then((r) => (r.ok ? r.json() : Promise.resolve({ error: r.status })))
+      .then((r) => (r.ok ? r.json() : Promise.reject(r)))
       .then((data) => {
-        console.log('quotes response:', data);
+        if (cancelled) return;
         const arr = Array.isArray(data) ? data : Array.isArray(data?.data) ? data.data : [];
         setQuotes(arr);
-        if (!Array.isArray(data)) setStatus(data?.error ? 'failed to load quotes' : '');
+        setStatus('');
       })
       .catch(() => {
+        if (cancelled) return;
         setQuotes([]);
-        setStatus('network error');
+        setStatus('failed to load quotes');
       });
-  }, []);
 
-  if (status && quotes.length === 0) return <p style={{ color: 'red' }}>{status}</p>;
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
+
+  if (!user) {
+    return (
+      <div className="notice" style={{ textAlign: 'center', opacity: 0.8 }}>
+        <p>
+          <b>Please log in</b> to view your quotes.
+        </p>
+        <p>(Log in to create, edit, or delete)</p>
+      </div>
+    );
+  }
+
+  if (status && quotes.length === 0) {
+    return <p style={{ color: 'red' }}>{status}</p>;
+  }
 
   function mailtoHref(q) {
     const subject = `Booking request for Quote #${q.id}`;
@@ -32,7 +57,6 @@ export default function QuotesList({ user }) {
   return (
     <div className="page page-center">
       <h2 className="page-title">Quotes</h2>
-      {!user && <p className="error">(Log in to create, edit, or delete)</p>}
       {quotes.length === 0 ? (
         <p>No quotes yet.</p>
       ) : (
