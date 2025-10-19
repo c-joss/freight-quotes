@@ -7,6 +7,7 @@ import Login from './Login';
 import QuotesList from './QuotesList';
 import NewQuote from './NewQuote';
 import QuoteDetail from './QuoteDetail';
+import AdminData from './AdminData';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -35,7 +36,8 @@ function App() {
     <div className="app">
       <nav className="nav">
         <Link to="/quotes">Quotes</Link>
-        <Link to="/quotes/new">New Quote</Link>
+        {user && <Link to="/quotes/new">New Quote</Link>}
+        {user && <Link to="/admin">Admin</Link>}
         <span className="spacer" />
         {!user ? (
           <Link to="/login">Login</Link>
@@ -52,6 +54,7 @@ function App() {
         <Route path="/quotes" element={<QuotesList user={user} />} />
         <Route path="/quotes/new" element={<NewQuote user={user} />} />
         <Route path="/quotes/:id" element={<QuoteDetail user={user} />} />
+        <Route path="/admin" element={<AdminData user={user} />} />
       </Routes>
     </div>
   );
