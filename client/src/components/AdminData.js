@@ -9,7 +9,8 @@ const PortSchema = Yup.object({
 });
 
 const ContainerTypeSchema = Yup.object({
-  name: Yup.string().trim().required('Required'),
+  code: Yup.string().trim().uppercase().required('Required'),
+  description: Yup.string().trim(),
 });
 
 export default function AdminData({ user }) {
@@ -61,7 +62,7 @@ export default function AdminData({ user }) {
       <section className="card" style={{ maxWidth: 520, marginTop: 24 }}>
         <h3>Create Container Type</h3>
         <Formik
-          initialValues={{ name: '' }}
+          initialValues={{ code: '', description: '' }}
           validationSchema={ContainerTypeSchema}
           onSubmit={async (values, { setSubmitting, resetForm, setStatus }) => {
             setStatus('');
@@ -82,9 +83,12 @@ export default function AdminData({ user }) {
         >
           {({ isSubmitting, status }) => (
             <Form>
-              <label>Name</label>
-              <Field name="name" className="input" />
-              <ErrorMessage name="name" component="div" className="error" />
+              <label>Code</label>
+              <Field name="code" className="input" />
+              <ErrorMessage name="code" component="div" className="error" />
+              <label>Description (optional)</label>
+              <Field name="description" className="input" />
+              <ErrorMessage name="description" component="div" className="error" />
               <button className="btn" type="submit" disabled={isSubmitting}>
                 Create Type
               </button>

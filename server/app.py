@@ -116,20 +116,21 @@ class ContainerTypes(Resource):
         if not current_user_id():
             return {"error": "Unauthorized"}, 401
         data = request.get_json() or {}
-        name = (data.get("name") or "").strip()
-        if not name:
-            return {"error": "name is required"}, 400
-        if ContainerType.query.filter_by(name=name).first():
-            return {"error": "name already exists"}, 409
-        ct = ContainerType(name=name)
+        code = (data.get("code") or "").strip().upper()
+        description = (data.get("description") or "").strip() or None
+        if not code:
+            return {"error": "code is required"}, 400
+        if ContainerType.query.filter_by(code=code).first():
+            return {"error": "code already exists"}, 409
+        ct = ContainerType(code=code, description=description)
         db.session.add(ct)
         db.session.commit()
         return ct.to_dict(), 201
     
 class Rates(Resource):
     def get(self):
-        q = Rate.query
-        return [r.to_dict(rules=('port_pair','container_type')) for r in q.all()], 200
+        rates = Rate.query.all()
+        return [r.to_dict(rules=('port_pair','container_type')) for r in rates], 200
 
     def post(self):
         if not current_user_id():
@@ -138,12 +139,12 @@ class Rates(Resource):
         try:
             port_pair_id = int(data.get("port_pair_id"))
             container_type_id = int(data.get("container_type_id"))
-            amount = float(data.get("amount"))
+            base_rate = float(data.get("base_rate"))
         except (TypeError, ValueError):
-            return {"error": "port_pair_id, container_type_id (ints) and amount (number) are required"}, 400
+            return {"error": "port_pair_id, container_type_id (ints) and base_rate (number) are required"}, 400
         if not PortPair.query.get(port_pair_id) or not ContainerType.query.get(container_type_id):
             return {"error": "invalid port_pair_id or container_type_id"}, 400
-        r = Rate(port_pair_id=port_pair_id, container_type_id=container_type_id, amount=amount)
+        r = Rate(port_pair_id=port_pair_id, container_type_id=container_type_id, base_rate=base_rate)
         db.session.add(r)
         db.session.commit()
         return r.to_dict(), 201
