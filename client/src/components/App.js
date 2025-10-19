@@ -1,3 +1,4 @@
+import { apiFetch } from '../api';
 import '../styles.css';
 import React, { useEffect, useState } from 'react';
 import { Routes, Route, Link, useNavigate } from 'react-router-dom';
@@ -11,18 +12,22 @@ function App() {
   const nav = useNavigate();
 
   useEffect(() => {
-    fetch('/auth/me', { credentials: 'include' })
+    apiFetch('/auth/me')
       .then((r) => r.json())
       .then((data) => {
         if (!data.error) setUser(data);
-      });
+      })
+      .catch(() => {});
   }, []);
 
-  function handleLogout() {
-    fetch('/auth/logout', { method: 'DELETE', credentials: 'include' }).then(() => {
+  async function handleLogout() {
+    try {
+      await apiFetch('/auth/logout', { method: 'DELETE' });
+    } catch {
+    } finally {
       setUser(null);
       nav('/login');
-    });
+    }
   }
 
   return (
