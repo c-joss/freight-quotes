@@ -6,10 +6,12 @@
 from flask import request, session
 from flask_restful import Resource
 
-# Local imports
-from .config import app, db, api
-# Add your model imports
-from .models import User, Port, PortPair, ContainerType, Rate, Quote, QuoteRate
+try:
+    from .config import app, db, api
+    from .models import User, Port, PortPair, ContainerType, Rate, Quote, QuoteRate
+except ImportError:
+    from config import app, db, api
+    from models import User, Port, PortPair, ContainerType, Rate, Quote, QuoteRate
 
 with app.app_context():
     db.create_all()
