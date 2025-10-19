@@ -11,6 +11,9 @@ from .config import app, db, api
 # Add your model imports
 from .models import User, Port, PortPair, ContainerType, Rate, Quote, QuoteRate
 
+with app.app_context():
+    db.create_all()
+
 def current_user():
     uid = session.get('user_id')
     return User.query.get(uid) if uid else None
