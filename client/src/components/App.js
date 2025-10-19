@@ -2,6 +2,7 @@ import { apiFetch } from '../api';
 import '../styles.css';
 import React, { useEffect, useState } from 'react';
 import { Routes, Route, Link, useNavigate } from 'react-router-dom';
+import Home from './Home';
 import Login from './Login';
 import QuotesList from './QuotesList';
 import NewQuote from './NewQuote';
@@ -46,6 +47,7 @@ function App() {
       </nav>
 
       <Routes>
+        <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login onLogin={setUser} />} />
         <Route path="/quotes" element={<QuotesList user={user} />} />
         <Route path="/quotes/new" element={<NewQuote user={user} />} />
