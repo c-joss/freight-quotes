@@ -1,3 +1,4 @@
+import { apiFetch } from '../api';
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -6,7 +7,7 @@ export default function QuotesList({ user }) {
   const [status, setStatus] = useState('');
 
   useEffect(() => {
-    fetch('/quotes', { credentials: 'include' })
+    apiFetch('/quotes')
       .then((r) => (r.ok ? r.json() : Promise.resolve({ error: r.status })))
       .then((data) => {
         console.log('quotes response:', data);
