@@ -1,3 +1,4 @@
+import { apiFetch } from '../api';
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Formik, Form, Field } from 'formik';
@@ -9,7 +10,7 @@ export default function QuoteDetail({ user }) {
   const [status, setStatus] = useState('');
 
   useEffect(() => {
-    fetch(`/quotes/${id}`, { credentials: 'include' })
+    apiFetch(`/quotes/${id}`)
       .then((r) => (r.ok ? r.json() : Promise.resolve({ error: r.status })))
       .then((data) => {
         if (data?.error) setStatus('failed to load quote');
@@ -32,7 +33,7 @@ export default function QuoteDetail({ user }) {
 
   async function handleDelete() {
     if (!isOwner) return;
-    await fetch(`/quotes/${id}`, { method: 'DELETE', credentials: 'include' });
+    await apiFetch(`/quotes/${id}`, { method: 'DELETE' });
     nav('/quotes');
   }
 
@@ -66,10 +67,8 @@ export default function QuoteDetail({ user }) {
                 initialValues={{ title: quote.title, status: quote.status }}
                 enableReinitialize
                 onSubmit={async (values) => {
-                  const res = await fetch(`/quotes/${id}`, {
+                  const res = await apiFetch(`/quotes/${id}`, {
                     method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',
                     body: JSON.stringify(values),
                   });
                   const data = await res.json();
