@@ -20,6 +20,10 @@ def current_user():
     uid = session.get('user_id')
     return User.query.get(uid) if uid else None
 
+def current_user_id():
+    u = current_user()
+    return u.id if u else None
+
 def require_owner(record_user_id):
     user = current_user()
     return user and user.id == record_user_id
@@ -64,38 +68,92 @@ class Logout(Resource):
 class Ports(Resource):
     def get(self):
         return [p.to_dict(rules=('-origin_pairs', '-dest_pairs')) for p in Port.query.all()], 200
+
+    def post(self):
+        if not current_user_id():
+            return {"error": "Unauthorized"}, 401
+        data = request.get_json() or {}
+        name = (data.get("name") or "").strip()
+        code = (data.get("code") or "").strip().upper()
+        if not name or not code:
+            return {"error": "name and code are required"}, 400
+        if Port.query.filter_by(code=code).first():
+            return {"error": "code already exists"}, 409
+        p = Port(name=name, code=code)
+        db.session.add(p)
+        db.session.commit()
+        return p.to_dict(), 201
     
 class PortPairs(Resource):
     def get(self):
         pps = PortPair.query.all()
-        return [
-            pp.to_dict(rules=(
-                '-rates',
-                'origin_port',
-                'destination_port'
-            ))
-            for pp in pps
-        ], 200
+        return [pp.to_dict(rules=('-rates','origin_port','destination_port')) for pp in pps], 200
+
+    def post(self):
+        if not current_user_id():
+            return {"error": "Unauthorized"}, 401
+        data = request.get_json() or {}
+        try:
+            origin_id = int(data.get("origin_port_id"))
+            dest_id = int(data.get("destination_port_id"))
+        except (TypeError, ValueError):
+            return {"error": "origin_port_id and destination_port_id must be integers"}, 400
+        if origin_id == dest_id:
+            return {"error": "origin and destination cannot be the same"}, 400
+        if not Port.query.get(origin_id) or not Port.query.get(dest_id):
+            return {"error": "invalid port id(s)"}, 400
+        pp = PortPair(origin_port_id=origin_id, destination_port_id=dest_id)
+        db.session.add(pp)
+        db.session.commit()
+        return pp.to_dict(), 201
 
 class ContainerTypes(Resource):
     def get(self):
         cts = ContainerType.query.all()
         return [ct.to_dict(rules=('-rates',)) for ct in cts], 200
+
+    def post(self):
+        if not current_user_id():
+            return {"error": "Unauthorized"}, 401
+        data = request.get_json() or {}
+        name = (data.get("name") or "").strip()
+        if not name:
+            return {"error": "name is required"}, 400
+        if ContainerType.query.filter_by(name=name).first():
+            return {"error": "name already exists"}, 409
+        ct = ContainerType(name=name)
+        db.session.add(ct)
+        db.session.commit()
+        return ct.to_dict(), 201
     
 class Rates(Resource):
     def get(self):
         q = Rate.query
-        pp_id = request.args.get('port_pair_id')
-        ct_id = request.args.get('container_type_id')
-        if pp_id:
-            q = q.filter_by(port_pair_id=pp_id)
-        if ct_id:
-            q = q.filter_by(container_type_id=ct_id)
-        return [r.to_dict(rules=('-quote_rates',)) for r in q.all()], 200
+        return [r.to_dict(rules=('port_pair','container_type')) for r in q.all()], 200
+
+    def post(self):
+        if not current_user_id():
+            return {"error": "Unauthorized"}, 401
+        data = request.get_json() or {}
+        try:
+            port_pair_id = int(data.get("port_pair_id"))
+            container_type_id = int(data.get("container_type_id"))
+            amount = float(data.get("amount"))
+        except (TypeError, ValueError):
+            return {"error": "port_pair_id, container_type_id (ints) and amount (number) are required"}, 400
+        if not PortPair.query.get(port_pair_id) or not ContainerType.query.get(container_type_id):
+            return {"error": "invalid port_pair_id or container_type_id"}, 400
+        r = Rate(port_pair_id=port_pair_id, container_type_id=container_type_id, amount=amount)
+        db.session.add(r)
+        db.session.commit()
+        return r.to_dict(), 201
     
 class Quotes(Resource):
     def get(self):
-        return [q.to_dict() for q in Quote.query.all()], 200
+        user = current_user()
+        if not user:
+            return {"error": "Unauthorized"}, 401
+        return [q.to_dict() for q in Quote.query.filter_by(user_id=user.id).all()], 200
 
     def post(self):
         user = current_user()
@@ -142,7 +200,12 @@ class Quotes(Resource):
     
 class QuoteDetail(Resource):
     def get(self, qid):
+        user = current_user()
+        if not user:
+            return {"error": "Unauthorized"}, 401
         q = Quote.query.get_or_404(qid)
+        if q.user_id != user.id:
+            return {"error": "Forbidden"}, 403
         return q.to_dict(rules=('rates',)), 200
 
     def patch(self, qid):
@@ -170,6 +233,7 @@ class QuoteDetail(Resource):
         db.session.delete(q)
         db.session.commit()
         return {}, 204
+    
     
 api.add_resource(Signup, '/auth/signup')
 api.add_resource(Login,  '/auth/login')
