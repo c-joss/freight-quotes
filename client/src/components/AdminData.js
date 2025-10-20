@@ -9,7 +9,7 @@ const PortSchema = Yup.object({
 });
 
 const ContainerTypeSchema = Yup.object({
-  name: Yup.string().trim().required('Enter container code (e.g., 20GP, 40REHC)'),
+  code: Yup.string().trim().required('Enter container code (e.g., 20GP, 40REHC)'),
   description: Yup.string().trim().max(120),
 });
 
@@ -134,31 +134,50 @@ export default function AdminData({ user }) {
           onSubmit={async (values, { resetForm, setSubmitting }) => {
             setFlash('');
             try {
-              await postJSON('/container_types', {
-                code: values.code,
-                description: values.description,
+              const res = await apiFetch('/container_types', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(values),
               });
+
+              if (!res.ok) {
+                let msg = `HTTP ${res.status}`;
+                try {
+                  const err = await res.json();
+                  if (err?.error) msg = err.error;
+                } catch {}
+                setBanner(`Failed to add container type: ${msg}`);
+                return;
+              }
+
+              const created = await res.json();
+              setTypes((prev) => [...prev, created]);
+              setBanner('');
               resetForm();
-              await loadLookups();
-            } catch (e) {
-              setFlash(`Failed to add container type: ${e.message}`);
             } finally {
               setSubmitting(false);
             }
           }}
         >
           {({ isSubmitting }) => (
-            <Form className="form-grid">
-              <label>Type Code</label>
-              <Field name="code" placeholder="e.g., 20GP, 40REHC" />
+            <Form className="card">
+              <h3>Add Container Type</h3>
+
+              <label htmlFor="code">Type Code</label>
+              <Field id="code" name="code" placeholder="e.g., 20OT" />
               <ErrorMessage name="code" component="div" className="error" />
 
-              <label>Description (optional)</label>
-              <Field name="description" placeholder="Short description" />
+              <label htmlFor="description">Description (optional)</label>
+              <Field
+                id="description"
+                name="description"
+                as="textarea"
+                placeholder="20 foot open top container"
+              />
               <ErrorMessage name="description" component="div" className="error" />
 
               <button type="submit" className="btn" disabled={isSubmitting}>
-                Add Type
+                {isSubmitting ? 'Saving…' : 'Add Type'}
               </button>
             </Form>
           )}
