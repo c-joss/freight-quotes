@@ -129,25 +129,21 @@ class ContainerTypes(Resource):
     
 class Rates(Resource):
     def get(self):
-        rates = Rate.query.all()
-        return [r.to_dict(rules=('port_pair','container_type')) for r in rates], 200
+        q = Rate.query
 
-    def post(self):
-        if not current_user_id():
-            return {"error": "Unauthorized"}, 401
-        data = request.get_json() or {}
+        ppid = request.args.get("port_pair_id")
+        ctid = request.args.get("container_type_id")
+
         try:
-            port_pair_id = int(data.get("port_pair_id"))
-            container_type_id = int(data.get("container_type_id"))
-            base_rate = float(data.get("base_rate"))
-        except (TypeError, ValueError):
-            return {"error": "port_pair_id, container_type_id (ints) and base_rate (number) are required"}, 400
-        if not PortPair.query.get(port_pair_id) or not ContainerType.query.get(container_type_id):
-            return {"error": "invalid port_pair_id or container_type_id"}, 400
-        r = Rate(port_pair_id=port_pair_id, container_type_id=container_type_id, base_rate=base_rate)
-        db.session.add(r)
-        db.session.commit()
-        return r.to_dict(), 201
+            if ppid is not None:
+                q = q.filter(Rate.port_pair_id == int(ppid))
+            if ctid is not None:
+                q = q.filter(Rate.container_type_id == int(ctid))
+        except ValueError:
+            return {"error": "port_pair_id and container_type_id must be integers"}, 400
+
+        rates = q.order_by(Rate.base_rate.asc()).all()
+        return [r.to_dict(rules=('port_pair','container_type')) for r in rates], 200
     
 class Quotes(Resource):
     def get(self):

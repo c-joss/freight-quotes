@@ -103,54 +103,43 @@ export default function NewQuote({ user }) {
                 <Field
                   as="select"
                   name="port_pair_id"
+                  className="input"
                   onChange={(e) => {
                     const val = Number(e.target.value);
                     setFieldValue('port_pair_id', val);
+                    setFieldValue('rate_ids', []);
                     loadRates(val, values.container_type_id);
                   }}
                 >
-                  <option value="">Choose…</option>
-                  {Array.isArray(pairs) && pairs.length > 0 ? (
-                    pairs.map((pp) => (
-                      <option key={pp.id} value={pp.id}>
-                        {pp.origin_port?.name ||
-                          pp.origin_port?.code ||
-                          `Origin ${pp.origin_port_id}`}{' '}
-                        →
-                        {pp.destination_port?.name ||
-                          pp.destination_port?.code ||
-                          `Dest ${pp.destination_port_id}`}
-                      </option>
-                    ))
-                  ) : (
-                    <option disabled value="">
-                      No port pairs (seed the DB)
+                  <option value="">Select…</option>
+                  {pairs.map((pp) => (
+                    <option key={pp.id} value={pp.id}>
+                      {pp.origin?.name} → {pp.destination?.name}
                     </option>
-                  )}
+                  ))}
                 </Field>
+
+                <ErrorMessage name="port_pair_id" component="div" className="error" />
 
                 <label>Container</label>
                 <Field
                   as="select"
                   name="container_type_id"
+                  className="input"
                   onChange={(e) => {
                     const val = Number(e.target.value);
                     setFieldValue('container_type_id', val);
+                    setFieldValue('rate_ids', []);
                     loadRates(values.port_pair_id, val);
                   }}
                 >
-                  <option value="">Choose…</option>
-                  {Array.isArray(types) && types.length > 0 ? (
-                    types.map((ct) => (
-                      <option key={ct.id} value={ct.id}>
-                        {ct.code || `Type ${ct.id}`}
-                      </option>
-                    ))
-                  ) : (
-                    <option disabled value="">
-                      No container types (seed the DB)
+                  <option value="">Select…</option>
+                  {types.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.code}
+                      {t.description ? ` — ${t.description}` : ''}
                     </option>
-                  )}
+                  ))}
                 </Field>
                 <ErrorMessage name="container_type_id" component="div" className="error" />
 
