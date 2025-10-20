@@ -161,6 +161,24 @@ class Rates(Resource):
         rates = q.order_by(Rate.base_rate.asc()).all()
         return [r.to_dict(rules=('port_pair','container_type')) for r in rates], 200
     
+    def post(self):
+        if not current_user_id():
+            return {"error": "Unauthorized"}, 401
+        data = request.get_json() or {}
+        try:
+            new_rate = Rate(
+                port_pair_id=int(data["port_pair_id"]),
+                container_type_id=int(data["container_type_id"]),
+                transit_time=int(data["transit_time"]),
+                base_rate=float(data["amount"]),
+            )
+            db.session.add(new_rate)
+            db.session.commit()
+            return new_rate.to_dict(rules=('port_pair','container_type')), 201
+        except Exception as e:
+            db.session.rollback()
+            return {"error": "Invalid rate data"}, 400
+    
 class Quotes(Resource):
     def get(self):
         user = current_user()
