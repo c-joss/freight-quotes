@@ -1,44 +1,53 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Formik, Form, Field, ErrorMessage } from 'formik';
+import React, { useEffect, useState, useCallback } from 'react';
 import * as Yup from 'yup';
+import { Formik, Form, Field, ErrorMessage } from 'formik';
 import { apiFetch } from '../api';
 
 const PortSchema = Yup.object({
-  name: Yup.string().trim().required('Required'),
-  code: Yup.string().trim().length(5, '5-char UN/LOCODE expected').required('Required'),
+  name: Yup.string().trim().required('Enter port name'),
+  code: Yup.string().trim().required('Enter UN/LOCODE'),
 });
 
-const PortPairSchema = Yup.object().shape({
-  origin_port_id: Yup.number().required('Select origin port'),
-  destination_port_id: Yup.number().required('Select destination port'),
+const ContainerTypeSchema = Yup.object({
+  name: Yup.string().trim().required('Enter container type (e.g., 20GP, 40REHC)'),
 });
 
-const RateSchema = Yup.object().shape({
-  port_pair_id: Yup.number().required('Select a port pair'),
-  container_type_id: Yup.number().required('Select container type'),
-  transit_time: Yup.number().typeError('Must be a number').required('Enter transit time'),
-  amount: Yup.number().typeError('Must be a number').required('Enter rate amount'),
+const PortPairSchema = Yup.object({
+  origin_port_id: Yup.number().required('Choose origin'),
+  destination_port_id: Yup.number().required('Choose destination'),
+});
+
+const RateSchema = Yup.object({
+  port_pair_id: Yup.number().required('Choose port pair'),
+  container_type_id: Yup.number().required('Choose container type'),
+  transit_time: Yup.number().integer().min(1, 'Min 1 day').required('Transit time required'),
+  amount: Yup.number().min(1, 'Min 1').required('Enter rate amount'),
 });
 
 export default function AdminData({ user }) {
   const [ports, setPorts] = useState([]);
   const [portPairs, setPortPairs] = useState([]);
-  const [containers, setContainers] = useState([]);
-  const [status, setStatus] = useState('');
+  const [types, setTypes] = useState([]);
+  const [flash, setFlash] = useState('');
 
-  const loadLookups = useCallback(() => {
-    return Promise.all([apiFetch('/ports'), apiFetch('/port_pairs'), apiFetch('/container_types')])
-      .then(async ([pr, ppr, cr]) => [
-        pr.ok ? await pr.json() : [],
-        ppr.ok ? await ppr.json() : [],
-        cr.ok ? await cr.json() : [],
-      ])
-      .then(([portsData, pairsData, typesData]) => {
-        setPorts(Array.isArray(portsData) ? portsData : []);
-        setPortPairs(Array.isArray(pairsData) ? pairsData : []);
-        setContainers(Array.isArray(typesData) ? typesData : []);
-      })
-      .catch(() => setStatus('Error loading admin data'));
+  const loadLookups = useCallback(async () => {
+    try {
+      const [pr, ppr, tr] = await Promise.all([
+        apiFetch('/ports'),
+        apiFetch('/port_pairs'),
+        apiFetch('/container_types'),
+      ]);
+      const [portsData, pairsData, typesData] = await Promise.all([
+        pr.ok ? pr.json() : [],
+        ppr.ok ? ppr.json() : [],
+        tr.ok ? tr.json() : [],
+      ]);
+      setPorts(Array.isArray(portsData) ? portsData : []);
+      setPortPairs(Array.isArray(pairsData) ? pairsData : []);
+      setTypes(Array.isArray(typesData) ? typesData : []);
+    } catch {
+      setFlash('Failed to load lookup data');
+    }
   }, []);
 
   useEffect(() => {
@@ -48,98 +57,132 @@ export default function AdminData({ user }) {
 
   if (!user) {
     return (
-      <div className="notice">
+      <div className="page page-center">
+        <h2 className="page-title">Admin</h2>
         <p>Please log in to access admin tools.</p>
       </div>
     );
   }
 
-  const createPort = (values, { resetForm }) => {
-    apiFetch('/ports', {
+  async function postJSON(url, body) {
+    const r = await apiFetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(values),
-    })
-      .then((r) => (r.ok ? r.json() : Promise.reject()))
-      .then((newPort) => {
-        setPorts((prev) => [...prev, newPort]);
-        setStatus('✅ Port added');
-        resetForm();
-      })
-      .catch(() => setStatus('Failed to add port'));
-  };
-
-  const createPortPair = (values, { resetForm }) => {
-    apiFetch('/port_pairs', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(values),
-    })
-      .then((r) => (r.ok ? r.json() : Promise.reject()))
-      .then((newPP) => {
-        setPortPairs((prev) => [...prev, newPP]);
-        setStatus('✅ Port pair added');
-        resetForm();
-      })
-      .catch(() => setStatus('Failed to add port pair'));
-  };
-
-  const createRate = (values, { resetForm }) => {
-    apiFetch('/rates', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(values),
-    })
-      .then((r) => (r.ok ? r.json() : Promise.reject()))
-      .then(() => {
-        setStatus('✅ Rate added');
-        resetForm();
-      })
-      .catch(() => setStatus('Failed to add rate'));
-  };
+      body: JSON.stringify(body),
+    });
+    if (!r.ok) {
+      let msg = '';
+      try {
+        msg = (await r.json())?.error || (await r.text());
+      } catch {}
+      throw new Error(msg || `HTTP ${r.status}`);
+    }
+    return r.json();
+  }
 
   return (
-    <div className="page page-center">
-      <h2>Admin Dashboard</h2>
-      {status && <p style={{ textAlign: 'center' }}>{status}</p>}
+    <div className="page">
+      <h1 className="page-title">Admin Dashboard</h1>
+      {flash && (
+        <p className="error" style={{ textAlign: 'center' }}>
+          {flash}
+        </p>
+      )}
 
-      <section className="card" style={{ marginBottom: '2rem' }}>
+      <div className="card" style={{ marginBottom: 24 }}>
         <h3>Add Port</h3>
         <Formik
           initialValues={{ name: '', code: '' }}
           validationSchema={PortSchema}
-          onSubmit={createPort}
+          onSubmit={async (values, { resetForm, setSubmitting }) => {
+            setFlash('');
+            try {
+              await postJSON('/ports', values);
+              resetForm();
+              await loadLookups();
+            } catch (e) {
+              setFlash(`Failed to add port: ${e.message}`);
+            } finally {
+              setSubmitting(false);
+            }
+          }}
         >
           {({ isSubmitting }) => (
-            <Form>
+            <Form className="form-grid">
               <label>Port Name</label>
-              <Field name="name" className="input" />
+              <Field name="name" />
               <ErrorMessage name="name" component="div" className="error" />
 
               <label>Port Code</label>
-              <Field name="code" className="input" />
+              <Field name="code" />
               <ErrorMessage name="code" component="div" className="error" />
 
-              <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
+              <button type="submit" className="btn" disabled={isSubmitting}>
                 Add Port
               </button>
             </Form>
           )}
         </Formik>
-      </section>
+      </div>
 
-      <section className="card" style={{ marginBottom: '2rem' }}>
+      <div className="card" style={{ marginBottom: 24 }}>
+        <h3>Add Container Type</h3>
+        <Formik
+          initialValues={{ name: '' }}
+          validationSchema={ContainerTypeSchema}
+          onSubmit={async (values, { resetForm, setSubmitting }) => {
+            setFlash('');
+            try {
+              await postJSON('/container_types', values);
+              resetForm();
+              await loadLookups();
+            } catch (e) {
+              setFlash(`Failed to add container type: ${e.message}`);
+            } finally {
+              setSubmitting(false);
+            }
+          }}
+        >
+          {({ isSubmitting }) => (
+            <Form className="form-grid">
+              <label>Type Name</label>
+              <Field name="name" placeholder="e.g., 20GP, 40REHC" />
+              <ErrorMessage name="name" component="div" className="error" />
+
+              <button type="submit" className="btn" disabled={isSubmitting}>
+                Add Type
+              </button>
+            </Form>
+          )}
+        </Formik>
+      </div>
+
+      <div className="card" style={{ marginBottom: 24 }}>
         <h3>Add Port Pair</h3>
         <Formik
           initialValues={{ origin_port_id: '', destination_port_id: '' }}
           validationSchema={PortPairSchema}
-          onSubmit={createPortPair}
+          onSubmit={async (values, { resetForm, setSubmitting }) => {
+            setFlash('');
+            try {
+              await postJSON('/port_pairs', {
+                origin_port_id: Number(values.origin_port_id),
+                destination_port_id: Number(values.destination_port_id),
+              });
+              resetForm();
+              await loadLookups();
+            } catch (e) {
+              setFlash(`Failed to add port pair: ${e.message}`);
+            } finally {
+              setSubmitting(false);
+            }
+          }}
         >
           {({ isSubmitting }) => (
-            <Form>
+            <Form className="form-grid">
               <label>Origin Port</label>
-              <Field as="select" name="origin_port_id" className="input">
-                <option value="">Select...</option>
+              <Field as="select" name="origin_port_id">
+                <option value="">Select…</option>
                 {ports.map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.name} ({p.code})
@@ -149,8 +192,8 @@ export default function AdminData({ user }) {
               <ErrorMessage name="origin_port_id" component="div" className="error" />
 
               <label>Destination Port</label>
-              <Field as="select" name="destination_port_id" className="input">
-                <option value="">Select...</option>
+              <Field as="select" name="destination_port_id">
+                <option value="">Select…</option>
                 {ports.map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.name} ({p.code})
@@ -159,65 +202,77 @@ export default function AdminData({ user }) {
               </Field>
               <ErrorMessage name="destination_port_id" component="div" className="error" />
 
-              <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
+              <button type="submit" className="btn" disabled={isSubmitting}>
                 Add Port Pair
               </button>
             </Form>
           )}
         </Formik>
-      </section>
+      </div>
 
-      <section className="card">
-        <h3>Add Rate for Port Pair</h3>
+      <div className="card">
+        <h3>Add Rate</h3>
         <Formik
-          initialValues={{
-            port_pair_id: '',
-            container_type_id: '',
-            transit_time: '',
-            amount: '',
-          }}
+          initialValues={{ port_pair_id: '', container_type_id: '', transit_time: '', amount: '' }}
           validationSchema={RateSchema}
-          onSubmit={createRate}
+          onSubmit={async (values, { resetForm, setSubmitting }) => {
+            setFlash('');
+            try {
+              const body = {
+                port_pair_id: Number(values.port_pair_id),
+                container_type_id: Number(values.container_type_id),
+                transit_time: Number(values.transit_time),
+                amount: Number(values.amount),
+              };
+              await postJSON('/rates', body);
+              resetForm();
+              await loadLookups();
+            } catch (e) {
+              setFlash(`Failed to add rate: ${e.message}`);
+            } finally {
+              setSubmitting(false);
+            }
+          }}
         >
           {({ isSubmitting }) => (
-            <Form>
+            <Form className="form-grid">
               <label>Port Pair</label>
-              <Field as="select" name="port_pair_id" className="input">
-                <option value="">Select...</option>
+              <Field as="select" name="port_pair_id">
+                <option value="">Select…</option>
                 {portPairs.map((pp) => (
                   <option key={pp.id} value={pp.id}>
-                    {pp.origin_port?.name || ''} → {pp.destination_port?.name || ''}
+                    {pp.origin_port?.name} → {pp.destination_port?.name}
                   </option>
                 ))}
               </Field>
               <ErrorMessage name="port_pair_id" component="div" className="error" />
 
               <label>Container Type</label>
-              <Field as="select" name="container_type_id" className="input">
-                <option value="">Select...</option>
-                {containers.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.code} — {c.description}
+              <Field as="select" name="container_type_id">
+                <option value="">Select…</option>
+                {types.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.name}
                   </option>
                 ))}
               </Field>
               <ErrorMessage name="container_type_id" component="div" className="error" />
 
               <label>Transit Time (days)</label>
-              <Field type="number" name="transit_time" className="input" />
+              <Field name="transit_time" type="number" min="1" />
               <ErrorMessage name="transit_time" component="div" className="error" />
 
               <label>Rate Amount</label>
-              <Field type="number" name="amount" className="input" />
+              <Field name="amount" type="number" min="1" />
               <ErrorMessage name="amount" component="div" className="error" />
 
-              <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
+              <button type="submit" className="btn" disabled={isSubmitting}>
                 Add Rate
               </button>
             </Form>
           )}
         </Formik>
-      </section>
+      </div>
     </div>
   );
 }
