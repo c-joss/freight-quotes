@@ -114,7 +114,7 @@ export default function NewQuote({ user }) {
                   <option value="">Select…</option>
                   {pairs.map((pp) => (
                     <option key={pp.id} value={pp.id}>
-                      {pp.origin?.name} → {pp.destination?.name}
+                      {pp.origin_port?.name || ''} → {pp.destination_port?.name || ''}
                     </option>
                   ))}
                 </Field>
