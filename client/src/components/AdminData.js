@@ -3,6 +3,8 @@ import * as Yup from 'yup';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import { apiFetch } from '../api';
 
+const [banner, setBanner] = useState({ type: '', text: '' });
+
 const PortSchema = Yup.object({
   name: Yup.string().trim().required('Enter port name'),
   code: Yup.string().trim().required('Enter UN/LOCODE'),
@@ -89,6 +91,8 @@ export default function AdminData({ user }) {
           {flash}
         </p>
       )}
+
+      {banner.text && <div className={`banner ${banner.type}`}>{banner.text}</div>}
 
       <div className="card" style={{ marginBottom: 24 }}>
         <h3>Add Port</h3>
