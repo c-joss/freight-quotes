@@ -135,7 +135,7 @@ export default function AdminData({ user }) {
             setFlash('');
             try {
               await postJSON('/container_types', {
-                name: values.code,
+                code: values.code,
                 description: values.description,
               });
               resetForm();
