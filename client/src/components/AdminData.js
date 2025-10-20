@@ -21,17 +21,29 @@ const RateSchema = Yup.object().shape({
 });
 
 const ContainerTypeSchema = Yup.object({
-  code: Yup.string().trim().uppercase().required('Required'),
+  code: Yup.string().trim().required('Required'),
   description: Yup.string().trim(),
 });
 
 export default function AdminData({ user }) {
-  if (!user) return <p>Please log in to manage lookup data.</p>;
-
   const [ports, setPorts] = useState([]);
   const [portPairs, setPortPairs] = useState([]);
   const [containers, setContainers] = useState([]);
   const [status, setStatus] = useState('');
+
+  useEffect(() => {
+    apiFetch('/ports').then((r) => r.ok && r.json().then(setPorts));
+    apiFetch('/port_pairs').then((r) => r.ok && r.json().then(setPortPairs));
+    apiFetch('/container_types').then((r) => r.ok && r.json().then(setContainers));
+  }, []);
+
+  if (!user) {
+    return (
+      <div className="notice">
+        <p>Please log in to access admin tools.</p>
+      </div>
+    );
+  }
 
   const createPort = (values, { resetForm }) => {
     apiFetch('/ports', {
