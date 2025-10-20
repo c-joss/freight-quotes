@@ -87,7 +87,7 @@ class Ports(Resource):
 class PortPairs(Resource):
     def get(self):
         pps = PortPair.query.all()
-        return [pp.to_dict(rules=('-rates','origin_port','destination_port')) for pp in pps], 200
+        return [pp.to_dict(rules=('-rates',)) for pp in pps], 200
 
     def post(self):
         if not current_user_id():
