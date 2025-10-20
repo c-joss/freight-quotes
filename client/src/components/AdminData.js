@@ -9,7 +9,7 @@ const PortSchema = Yup.object({
 });
 
 const ContainerTypeSchema = Yup.object({
-  name: Yup.string().trim().required('Enter container type name (e.g., 20GP, 40REHC)'),
+  name: Yup.string().trim().required('Enter container code (e.g., 20GP, 40REHC)'),
   description: Yup.string().trim().max(120),
 });
 
@@ -21,8 +21,8 @@ const PortPairSchema = Yup.object({
 const RateSchema = Yup.object({
   port_pair_id: Yup.number().required('Choose port pair'),
   container_type_id: Yup.number().required('Choose container type'),
-  transit_time: Yup.number().integer().min(1, 'Min 1 day').required('Transit time required'),
-  amount: Yup.number().min(1, 'Min 1').required('Enter rate amount'),
+  transit_days: Yup.number().integer().min(1, 'Min 1 day').required('Transit days required'),
+  base_rate: Yup.number().min(1, 'Min 1').required('Enter base rate'),
 });
 
 export default function AdminData({ user }) {
@@ -129,13 +129,13 @@ export default function AdminData({ user }) {
       <div className="card" style={{ marginBottom: 24 }}>
         <h3>Add Container Type</h3>
         <Formik
-          initialValues={{ name: '', description: '' }}
+          initialValues={{ code: '', description: '' }}
           validationSchema={ContainerTypeSchema}
           onSubmit={async (values, { resetForm, setSubmitting }) => {
             setFlash('');
             try {
               await postJSON('/container_types', {
-                name: values.name,
+                name: values.code,
                 description: values.description,
               });
               resetForm();
@@ -149,9 +149,9 @@ export default function AdminData({ user }) {
         >
           {({ isSubmitting }) => (
             <Form className="form-grid">
-              <label>Type Name</label>
-              <Field name="name" placeholder="e.g., 20GP, 40REHC" />
-              <ErrorMessage name="name" component="div" className="error" />
+              <label>Type Code</label>
+              <Field name="code" placeholder="e.g., 20GP, 40REHC" />
+              <ErrorMessage name="code" component="div" className="error" />
 
               <label>Description (optional)</label>
               <Field name="description" placeholder="Short description" />
@@ -221,7 +221,12 @@ export default function AdminData({ user }) {
       <div className="card">
         <h3>Add Rate</h3>
         <Formik
-          initialValues={{ port_pair_id: '', container_type_id: '', transit_time: '', amount: '' }}
+          initialValues={{
+            port_pair_id: '',
+            container_type_id: '',
+            transit_days: '',
+            base_rate: '',
+          }}
           validationSchema={RateSchema}
           onSubmit={async (values, { resetForm, setSubmitting }) => {
             setFlash('');
@@ -229,8 +234,8 @@ export default function AdminData({ user }) {
               const body = {
                 port_pair_id: Number(values.port_pair_id),
                 container_type_id: Number(values.container_type_id),
-                transit_time: Number(values.transit_time),
-                amount: Number(values.amount),
+                transit_days: Number(values.transit_days),
+                base_rate: Number(values.base_rate),
               };
               await postJSON('/rates', body);
               resetForm();
@@ -260,19 +265,20 @@ export default function AdminData({ user }) {
                 <option value="">Select…</option>
                 {types.map((t) => (
                   <option key={t.id} value={t.id}>
-                    {t.name}
+                    {t.code}
+                    {t.description ? ` — ${t.description}` : ''}
                   </option>
                 ))}
               </Field>
               <ErrorMessage name="container_type_id" component="div" className="error" />
 
-              <label>Transit Time (days)</label>
-              <Field name="transit_time" type="number" min="1" />
-              <ErrorMessage name="transit_time" component="div" className="error" />
+              <label>Transit Days</label>
+              <Field name="transit_days" type="number" min="1" />
+              <ErrorMessage name="transit_days" component="div" className="error" />
 
-              <label>Rate Amount</label>
-              <Field name="amount" type="number" min="1" />
-              <ErrorMessage name="amount" component="div" className="error" />
+              <label>Base Rate</label>
+              <Field name="base_rate" type="number" min="1" />
+              <ErrorMessage name="base_rate" component="div" className="error" />
 
               <button type="submit" className="btn" disabled={isSubmitting}>
                 Add Rate

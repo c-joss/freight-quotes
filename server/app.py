@@ -125,23 +125,21 @@ class PortPairs(Resource):
 
 class ContainerTypes(Resource):
     def get(self):
-        cts = ContainerType.query.all()
-        return [ct.to_dict(rules=('-rates',)) for ct in cts], 200
+        return [t.to_dict() for t in ContainerType.query.order_by(ContainerType.code).all()], 200
 
     def post(self):
-        if not current_user_id():
-            return {"error": "Unauthorized"}, 401
         data = request.get_json() or {}
-        name = (data.get("name") or "").strip()
-        description = (data.get("description") or "").strip() or None
-        if not name:
-            return {"error": "name is required"}, 400
-        if ContainerType.query.filter_by(name=name).first():
-            return {"error": "name already exists"}, 409
-        ct = ContainerType(name=name, description=description)
-        db.session.add(ct)
+        code = (data.get("code") or "").strip()
+        if not code:
+            return {"error": "code is required"}, 400
+
+        if ContainerType.query.filter_by(code=code).first():
+            return {"error": "container type already exists"}, 400
+
+        t = ContainerType(code=code)
+        db.session.add(t)
         db.session.commit()
-        return ct.to_dict(), 201
+        return t.to_dict(), 201
     
 class Rates(Resource):
     def get(self):
