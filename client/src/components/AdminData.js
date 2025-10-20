@@ -31,11 +31,38 @@ export default function AdminData({ user }) {
   const [containers, setContainers] = useState([]);
   const [status, setStatus] = useState('');
 
-  useEffect(() => {
-    apiFetch('/ports').then((r) => r.ok && r.json().then(setPorts));
-    apiFetch('/port_pairs').then((r) => r.ok && r.json().then(setPortPairs));
-    apiFetch('/container_types').then((r) => r.ok && r.json().then(setContainers));
+  const loadLookups = useCallback(() => {
+    return Promise.all([apiFetch('/ports'), apiFetch('/port_pairs'), apiFetch('/container_types')])
+      .then(async ([pr, ppr, cr]) => [
+        pr.ok ? await pr.json() : [],
+        ppr.ok ? await ppr.json() : [],
+        cr.ok ? await cr.json() : [],
+      ])
+      .then(([portsData, pairsData, typesData]) => {
+        setPorts(Array.isArray(portsData) ? portsData : []);
+        setPortPairs(Array.isArray(pairsData) ? pairsData : []);
+        setContainers(Array.isArray(typesData) ? typesData : []);
+      })
+      .catch(() => setStatus('❌ Error loading admin data'));
   }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    loadLookups();
+  }, [user, loadLookups]);
+
+  if (!user) {
+    return (
+      <div className="notice">
+        <p>Please log in to access admin tools.</p>
+      </div>
+    );
+  }
+
+  const PortSchema = Yup.object({
+    name: Yup.string().required('Enter port name'),
+    code: Yup.string().trim().required('Enter port code'),
+  });
 
   if (!user) {
     return (
