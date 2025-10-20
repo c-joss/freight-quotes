@@ -9,7 +9,8 @@ const PortSchema = Yup.object({
 });
 
 const ContainerTypeSchema = Yup.object({
-  name: Yup.string().trim().required('Enter container type (e.g., 20GP, 40REHC)'),
+  name: Yup.string().trim().required('Enter container type name (e.g., 20GP, 40REHC)'),
+  description: Yup.string().trim().max(120),
 });
 
 const PortPairSchema = Yup.object({
@@ -128,12 +129,15 @@ export default function AdminData({ user }) {
       <div className="card" style={{ marginBottom: 24 }}>
         <h3>Add Container Type</h3>
         <Formik
-          initialValues={{ name: '' }}
+          initialValues={{ name: '', description: '' }}
           validationSchema={ContainerTypeSchema}
           onSubmit={async (values, { resetForm, setSubmitting }) => {
             setFlash('');
             try {
-              await postJSON('/container_types', values);
+              await postJSON('/container_types', {
+                name: values.name,
+                description: values.description,
+              });
               resetForm();
               await loadLookups();
             } catch (e) {
@@ -148,6 +152,10 @@ export default function AdminData({ user }) {
               <label>Type Name</label>
               <Field name="name" placeholder="e.g., 20GP, 40REHC" />
               <ErrorMessage name="name" component="div" className="error" />
+
+              <label>Description (optional)</label>
+              <Field name="description" placeholder="Short description" />
+              <ErrorMessage name="description" component="div" className="error" />
 
               <button type="submit" className="btn" disabled={isSubmitting}>
                 Add Type

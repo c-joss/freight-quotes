@@ -132,13 +132,13 @@ class ContainerTypes(Resource):
         if not current_user_id():
             return {"error": "Unauthorized"}, 401
         data = request.get_json() or {}
-        code = (data.get("code") or "").strip().upper()
+        name = (data.get("name") or "").strip()
         description = (data.get("description") or "").strip() or None
-        if not code:
-            return {"error": "code is required"}, 400
-        if ContainerType.query.filter_by(code=code).first():
-            return {"error": "code already exists"}, 409
-        ct = ContainerType(code=code, description=description)
+        if not name:
+            return {"error": "name is required"}, 400
+        if ContainerType.query.filter_by(name=name).first():
+            return {"error": "name already exists"}, 409
+        ct = ContainerType(name=name, description=description)
         db.session.add(ct)
         db.session.commit()
         return ct.to_dict(), 201
