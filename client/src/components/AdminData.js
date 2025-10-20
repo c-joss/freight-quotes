@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { apiFetch } from '../api';
@@ -20,11 +20,6 @@ const RateSchema = Yup.object().shape({
   amount: Yup.number().typeError('Must be a number').required('Enter rate amount'),
 });
 
-const ContainerTypeSchema = Yup.object({
-  code: Yup.string().trim().required('Required'),
-  description: Yup.string().trim(),
-});
-
 export default function AdminData({ user }) {
   const [ports, setPorts] = useState([]);
   const [portPairs, setPortPairs] = useState([]);
@@ -43,26 +38,13 @@ export default function AdminData({ user }) {
         setPortPairs(Array.isArray(pairsData) ? pairsData : []);
         setContainers(Array.isArray(typesData) ? typesData : []);
       })
-      .catch(() => setStatus('❌ Error loading admin data'));
+      .catch(() => setStatus('Error loading admin data'));
   }, []);
 
   useEffect(() => {
     if (!user) return;
     loadLookups();
   }, [user, loadLookups]);
-
-  if (!user) {
-    return (
-      <div className="notice">
-        <p>Please log in to access admin tools.</p>
-      </div>
-    );
-  }
-
-  const PortSchema = Yup.object({
-    name: Yup.string().required('Enter port name'),
-    code: Yup.string().trim().required('Enter port code'),
-  });
 
   if (!user) {
     return (
@@ -115,21 +97,6 @@ export default function AdminData({ user }) {
       })
       .catch(() => setStatus('Failed to add rate'));
   };
-
-  useEffect(() => {
-    Promise.all([apiFetch('/ports'), apiFetch('/port_pairs'), apiFetch('/container_types')])
-      .then(async ([pr, ppr, cr]) => [
-        pr.ok ? await pr.json() : [],
-        ppr.ok ? await ppr.json() : [],
-        cr.ok ? await cr.json() : [],
-      ])
-      .then(([portsData, portPairsData, containersData]) => {
-        setPorts(Array.isArray(portsData) ? portsData : []);
-        setPortPairs(Array.isArray(portPairsData) ? portPairsData : []);
-        setContainers(Array.isArray(containersData) ? containersData : []);
-      })
-      .catch(() => setStatus('Error loading admin data'));
-  }, []);
 
   return (
     <div className="page page-center">
