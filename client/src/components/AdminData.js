@@ -161,9 +161,7 @@ export default function AdminData({ user }) {
           }}
         >
           {({ isSubmitting }) => (
-            <Form className="card">
-              <h3>Add Container Type</h3>
-
+            <Form className="form-grid">
               <label htmlFor="code">Type Code</label>
               <Field id="code" name="code" placeholder="e.g., 20OT" />
               <ErrorMessage name="code" component="div" className="error" />

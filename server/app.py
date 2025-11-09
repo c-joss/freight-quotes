@@ -167,13 +167,13 @@ class Rates(Resource):
             new_rate = Rate(
                 port_pair_id=int(data["port_pair_id"]),
                 container_type_id=int(data["container_type_id"]),
-                transit_time=int(data["transit_time"]),
-                base_rate=float(data["amount"]),
+                transit_time=int(data["transit_days"]),
+                base_rate=float(data["base_rate"]),
             )
             db.session.add(new_rate)
             db.session.commit()
             return new_rate.to_dict(rules=('port_pair','container_type')), 201
-        except Exception as e:
+        except Exception:
             db.session.rollback()
             return {"error": "Invalid rate data"}, 400
     
