@@ -8,14 +8,6 @@ export default function Home() {
         <img src="/paper-boat.com.png" alt="Paper Boat" className="home-hero" />
         <h1>Freight Quotes</h1>
         <p>Compare routes & container rates, then lock in a quote.</p>
-        <div className="home-cta">
-          <a className="btn" href="/login">
-            Login
-          </a>
-          <a className="btn secondary" href="/quotes">
-            View Quotes
-          </a>
-        </div>
       </section>
     </main>
   );
