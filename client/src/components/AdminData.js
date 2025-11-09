@@ -25,6 +25,14 @@ const RateSchema = Yup.object({
   base_rate: Yup.number().min(1, 'Min 1').required('Enter base rate'),
 });
 
+const UserSchema = Yup.object({
+  email: Yup.string().email('Enter a valid email').required('Email required'),
+  password: Yup.string().min(6, 'Min 6 characters').required('Password required'),
+  confirm: Yup.string()
+    .oneOf([Yup.ref('password')], 'Passwords must match')
+    .required('Confirm your password'),
+});
+
 export default function AdminData({ user }) {
   const [ports, setPorts] = useState([]);
   const [portPairs, setPortPairs] = useState([]);
@@ -300,6 +308,49 @@ export default function AdminData({ user }) {
 
               <button type="submit" className="btn" disabled={isSubmitting}>
                 Add Rate
+              </button>
+            </Form>
+          )}
+        </Formik>
+      </div>
+
+      <div className="card" style={{ marginBottom: 24 }}>
+        <h3>Add User</h3>
+        <Formik
+          initialValues={{ email: '', password: '', confirm: '' }}
+          validationSchema={UserSchema}
+          onSubmit={async (values, { resetForm, setSubmitting }) => {
+            setFlash('');
+            try {
+              await postJSON('/admin/users', {
+                email: values.email,
+                password: values.password,
+              });
+              resetForm();
+              setFlash('User created successfully');
+            } catch (e) {
+              setFlash(`Failed to add user: ${e.message}`);
+            } finally {
+              setSubmitting(false);
+            }
+          }}
+        >
+          {({ isSubmitting }) => (
+            <Form className="form-grid">
+              <label>Email</label>
+              <Field name="email" type="email" />
+              <ErrorMessage name="email" component="div" className="error" />
+
+              <label>Password</label>
+              <Field name="password" type="password" />
+              <ErrorMessage name="password" component="div" className="error" />
+
+              <label>Confirm Password</label>
+              <Field name="confirm" type="password" />
+              <ErrorMessage name="confirm" component="div" className="error" />
+
+              <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
+                Add User
               </button>
             </Form>
           )}

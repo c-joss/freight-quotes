@@ -263,6 +263,27 @@ class QuoteDetail(Resource):
         db.session.commit()
         return {}, 204
     
+class AdminUsers(Resource):
+    def post(self):
+        if not current_user_id():
+            return {"error": "Unauthorized"}, 401
+
+        data = request.get_json() or {}
+        email = (data.get('email') or '').strip()
+        password = data.get('password') or ''
+
+        if not email or not password:
+            return {"error": "email and password required"}, 400
+
+        if User.query.filter_by(email=email).first():
+            return {"error": "email already used"}, 400
+
+        u = User(email=email)
+        u.set_password(password)
+        db.session.add(u)
+        db.session.commit()
+        return u.to_dict(), 201
+    
     
 api.add_resource(Signup, '/auth/signup')
 api.add_resource(Login,  '/auth/login')
@@ -276,6 +297,7 @@ api.add_resource(Rates, '/rates')
 
 api.add_resource(Quotes, '/quotes')
 api.add_resource(QuoteDetail, '/quotes/<int:qid>')
+api.add_resource(AdminUsers, '/admin/users')
 
 
 if __name__ == '__main__':
