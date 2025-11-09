@@ -104,7 +104,7 @@ export default function Login({ onLogin }) {
 
                 <div className="mt-2">
                   <button type="button" className="btn btn-ghost" onClick={() => setMode('login')}>
-                    Have an account? Log in
+                    Create Account
                   </button>
                 </div>
               </Form>
