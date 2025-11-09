@@ -167,7 +167,7 @@ class Rates(Resource):
             new_rate = Rate(
                 port_pair_id=int(data["port_pair_id"]),
                 container_type_id=int(data["container_type_id"]),
-                transit_time=int(data["transit_days"]),
+                transit_days=int(data["transit_days"]),
                 base_rate=float(data["base_rate"]),
             )
             db.session.add(new_rate)
