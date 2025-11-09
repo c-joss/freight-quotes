@@ -2,6 +2,12 @@ import { apiFetch } from '../api';
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Formik, Form, Field } from 'formik';
+import * as Yup from 'yup';
+
+const EditSchema = Yup.object({
+  title: Yup.string().trim().required('Title required'),
+  status: Yup.mixed().oneOf(['Confirmed', 'Accepted'], 'Invalid status'),
+});
 
 export default function QuoteDetail({ user }) {
   const { id } = useParams();
@@ -66,6 +72,7 @@ export default function QuoteDetail({ user }) {
               <Formik
                 initialValues={{ title: quote.title, status: quote.status }}
                 enableReinitialize
+                validationSchema={EditSchema}
                 onSubmit={async (values) => {
                   const res = await apiFetch(`/quotes/${id}`, {
                     method: 'PATCH',
@@ -78,12 +85,14 @@ export default function QuoteDetail({ user }) {
                 <Form>
                   <label>Title</label>
                   <Field name="title" />
+                  <ErrorMessage name="title" component="div" className="error" />
 
                   <label>Status</label>
                   <Field as="select" name="status">
                     <option value="Confirmed">Confirmed</option>
                     <option value="Accepted">Accepted</option>
                   </Field>
+                  <ErrorMessage name="status" component="div" className="error" />
 
                   <button className="btn btn-primary" type="submit">
                     Save
