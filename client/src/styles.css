@@ -161,6 +161,31 @@ legend {
   color: #fff;
 }
 
+.btn {
+  background: var(--ultra-violet);
+  color: #fff;
+  transition: background 0.2s ease;
+}
+
+.btn:hover {
+  background: var(--glaucous);
+}
+
+.btn-secondary {
+  background: var(--wisteria);
+  color: #111;
+}
+
+.btn-secondary:hover {
+  background: var(--glaucous);
+  color: #fff;
+}
+
+.btn-xs {
+  padding: 6px 10px;
+  font-size: 0.85rem;
+}
+
 .pill {
   display: inline-block;
   padding: 2px 10px;
