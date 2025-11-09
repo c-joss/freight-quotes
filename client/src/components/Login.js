@@ -1,10 +1,10 @@
 import { apiFetch } from '../api';
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 
-const loginschema = Yup.object({
+const loginSchema = Yup.object({
   email: Yup.string().email('use a valid email').required('required'),
   password: Yup.string().min(4, 'min 4 chars').required('required'),
 });
